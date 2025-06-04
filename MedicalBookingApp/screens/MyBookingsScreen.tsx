@@ -1,0 +1,569 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
+  Alert,
+  RefreshControl,
+} from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
+import * as bookingService from '../services/bookingService';
+
+interface Booking {
+  id: string;
+  doctorName: string;
+  specialty: string;
+  hospitalName: string;
+  date: string;
+  time: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'canceled';
+}
+
+interface MyBookingsScreenProps {
+  navigation: any;
+}
+
+const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({ navigation }) => {
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const isFocused = useIsFocused();
+  
+  useEffect(() => {
+    if (isFocused) {
+      fetchBookings();
+    }
+  }, [isFocused]);
+  
+  const fetchBookings = async () => {
+    setLoading(true);
+    
+    try {
+      // Fetch bookings from API
+      const response = await bookingService.getMyBookings();
+      
+      if (response && Array.isArray(response)) {
+        // Transform API response to match our component props
+        const formattedBookings: Booking[] = response.map(booking => ({
+          id: booking.id.toString(),
+          doctorName: `${booking.doctor.title || 'BS.'} ${booking.doctor.firstname} ${booking.doctor.lastname}`,
+          specialty: booking.doctor.specialty?.nameSpecialty || 'Chuyên khoa',
+          hospitalName: booking.doctor.clinic?.nameClinic || 'Bệnh viện',
+          date: booking.date,
+          time: booking.timeType === 'morning' ? '09:00' : '14:30',
+          status: getStatusFromCode(booking.status),
+        }));
+        
+        setBookings(formattedBookings);
+      } else {
+        // Fallback to mock data if API response is invalid
+        setBookings(getMockBookings());
+      }
+    } catch (error) {
+      console.log('Error fetching bookings:', error);
+      // Fallback to mock data
+      setBookings(getMockBookings());
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+  
+  const getMockBookings = (): Booking[] => {
+    return [
+      {
+        id: 'BK12345',
+        doctorName: 'BS. Trần Văn B',
+        specialty: 'Tim mạch',
+        hospitalName: 'Bệnh viện Chợ Rẫy',
+        date: '2025-06-15',
+        time: '09:00',
+        status: 'confirmed',
+      },
+      {
+        id: 'BK12346',
+        doctorName: 'BS. Lê Thị C',
+        specialty: 'Da liễu',
+        hospitalName: 'Bệnh viện Bình Dân',
+        date: '2025-06-20',
+        time: '14:30',
+        status: 'pending',
+      },
+      {
+        id: 'BK12347',
+        doctorName: 'PGS.TS Nguyễn Văn D',
+        specialty: 'Thần kinh',
+        hospitalName: 'BV Đại học Y Dược',
+        date: '2025-05-10',
+        time: '10:00',
+        status: 'completed',
+      },
+    ];
+  };
+  
+  const getStatusFromCode = (statusCode: number): Booking['status'] => {
+    switch (statusCode) {
+      case 0:
+        return 'pending';
+      case 1:
+        return 'confirmed';
+      case 2:
+        return 'completed';
+      case 3:
+        return 'canceled';
+      default:
+        return 'pending';
+    }
+  };
+  
+  const handleCancelBooking = (bookingId: string) => {
+    Alert.alert(
+      'Xác nhận hủy lịch',
+      'Bạn có chắc chắn muốn hủy lịch khám này không?',
+      [
+        { text: 'Không', style: 'cancel' },
+        {
+          text: 'Có, hủy lịch',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await bookingService.cancelBooking(bookingId);
+              Alert.alert('Thành công', 'Đã hủy lịch khám thành công');
+              fetchBookings();
+            } catch (error) {
+              console.log('Error canceling booking:', error);
+              Alert.alert('Lỗi', 'Không thể hủy lịch khám. Vui lòng thử lại sau.');
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+  
+  const handleRescheduleBooking = (bookingId: string) => {
+    navigation.navigate('BookingDetail', { bookingId, mode: 'reschedule' });
+  };
+  
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchBookings();
+  };
+  
+  const getUpcomingBookings = () => {
+    const today = new Date();
+    return bookings.filter((booking) => {
+      const bookingDate = new Date(booking.date);
+      return bookingDate >= today && (booking.status === 'confirmed' || booking.status === 'pending');
+    });
+  };
+  
+  const getPastBookings = () => {
+    const today = new Date();
+    return bookings.filter((booking) => {
+      const bookingDate = new Date(booking.date);
+      return bookingDate < today || booking.status === 'completed' || booking.status === 'canceled';
+    });
+  };
+  
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+  
+  const getStatusColor = (status: Booking['status']): string => {
+    switch (status) {
+      case 'confirmed':
+        return '#4CD964';
+      case 'pending':
+        return '#FF9500';
+      case 'completed':
+        return '#007AFF';
+      case 'canceled':
+        return '#FF3B30';
+      default:
+        return '#999';
+    }
+  };
+  
+  const getStatusText = (status: Booking['status']): string => {
+    switch (status) {
+      case 'confirmed':
+        return 'Đã xác nhận';
+      case 'pending':
+        return 'Chờ xác nhận';
+      case 'completed':
+        return 'Đã khám';
+      case 'canceled':
+        return 'Đã hủy';
+      default:
+        return '';
+    }
+  };
+  
+  const handleBookingPress = (bookingId: string) => {
+    navigation.navigate('BookingDetail', { bookingId });
+  };
+  
+  const renderBookingItem = ({ item }: { item: Booking }) => (
+    <TouchableOpacity 
+      style={styles.bookingCard}
+      onPress={() => handleBookingPress(item.id)}
+    >
+      <View style={styles.bookingHeader}>
+        <View>
+          <Text style={styles.doctorName}>{item.doctorName}</Text>
+          <Text style={styles.doctorSpecialty}>{item.specialty}</Text>
+        </View>
+        <View style={[styles.statusTag, { backgroundColor: `${getStatusColor(item.status)}20` }]}>
+          <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+            {getStatusText(item.status)}
+          </Text>
+        </View>
+      </View>
+      
+      <View style={styles.bookingInfo}>
+        <View style={styles.infoItem}>
+          <Text style={styles.infoIcon}>📅</Text>
+          <Text style={styles.infoText}>{formatDate(item.date)}</Text>
+        </View>
+        <View style={styles.infoItem}>
+          <Text style={styles.infoIcon}>🕒</Text>
+          <Text style={styles.infoText}>{item.time}</Text>
+        </View>
+        <View style={styles.infoItem}>
+          <Text style={styles.infoIcon}>🏥</Text>
+          <Text style={styles.infoText}>{item.hospitalName}</Text>
+        </View>
+      </View>
+      
+      <View style={styles.actionButtons}>
+        {(item.status === 'confirmed' || item.status === 'pending') && (
+          <>
+            <TouchableOpacity 
+              style={styles.rescheduleButton}
+              onPress={() => handleRescheduleBooking(item.id)}
+            >
+              <Text style={styles.rescheduleText}>Đổi lịch</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.cancelButton}
+              onPress={() => handleCancelBooking(item.id)}
+            >
+              <Text style={styles.cancelText}>Hủy lịch</Text>
+            </TouchableOpacity>
+          </>
+        )}
+        {item.status === 'completed' && (
+          <TouchableOpacity style={styles.reviewButton}>
+            <Text style={styles.reviewText}>Đánh giá</Text>
+          </TouchableOpacity>
+        )}
+        {item.status === 'canceled' && (
+          <TouchableOpacity style={styles.bookAgainButton}>
+            <Text style={styles.bookAgainText}>Đặt lại</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      
+      <Text style={styles.bookingId}>Mã đặt lịch: {item.id}</Text>
+    </TouchableOpacity>
+  );
+  
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor="#f8f8f8" barStyle="dark-content" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Lịch khám của tôi</Text>
+        <View style={styles.placeholder} />
+      </View>
+      
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'upcoming' && styles.activeTabButton]}
+          onPress={() => setActiveTab('upcoming')}
+        >
+          <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>
+            Sắp tới
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'past' && styles.activeTabButton]}
+          onPress={() => setActiveTab('past')}
+        >
+          <Text style={[styles.tabText, activeTab === 'past' && styles.activeTabText]}>
+            Đã qua
+          </Text>
+        </TouchableOpacity>
+      </View>
+      
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Đang tải lịch khám...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={activeTab === 'upcoming' ? getUpcomingBookings() : getPastBookings()}
+          renderItem={renderBookingItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>📋</Text>
+              <Text style={styles.emptyText}>
+                {activeTab === 'upcoming'
+                  ? 'Bạn chưa có lịch khám sắp tới'
+                  : 'Không có lịch khám nào trong lịch sử'}
+              </Text>
+              {activeTab === 'upcoming' && (
+                <TouchableOpacity
+                  style={styles.newBookingButton}
+                  onPress={() => navigation.navigate('DoctorList')}
+                >
+                  <Text style={styles.newBookingText}>Đặt lịch khám</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
+          }
+        />
+      )}
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f8f8',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    height: 56,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  backButton: {
+    padding: 8,
+  },
+  backButtonText: {
+    fontSize: 24,
+    color: '#007AFF',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  placeholder: {
+    width: 40,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    height: 48,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  tabButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  activeTabButton: {
+    borderBottomColor: '#007AFF',
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  activeTabText: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
+  listContent: {
+    padding: 16,
+  },
+  bookingCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3.84,
+    elevation: 3,
+  },
+  bookingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  doctorName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 4,
+  },
+  doctorSpecialty: {
+    fontSize: 14,
+    color: '#007AFF',
+  },
+  statusTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  bookingInfo: {
+    marginBottom: 16,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  infoIcon: {
+    fontSize: 16,
+    marginRight: 8,
+    width: 20,
+    textAlign: 'center',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  rescheduleButton: {
+    backgroundColor: '#E3F2FD',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  rescheduleText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  cancelButton: {
+    backgroundColor: '#FFEBEE',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  cancelText: {
+    fontSize: 14,
+    color: '#FF3B30',
+    fontWeight: '500',
+  },
+  reviewButton: {
+    backgroundColor: '#E8F5E9',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  reviewText: {
+    fontSize: 14,
+    color: '#4CD964',
+    fontWeight: '500',
+  },
+  bookAgainButton: {
+    backgroundColor: '#E3F2FD',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  bookAgainText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  bookingId: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'right',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 30,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  newBookingButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  newBookingText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
+
+export default MyBookingsScreen; 
