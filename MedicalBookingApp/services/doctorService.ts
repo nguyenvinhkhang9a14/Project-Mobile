@@ -4,18 +4,6 @@ import { getAuthHeaders } from './authService';
 import { Doctor, TimeSlot } from '../interfaces';
 import api from './api';
 
-// Interface cho dữ liệu lịch làm việc của bác sĩ
-interface DoctorSchedule {
-  doctorId: string;
-  date: string;
-  timeSlots: Array<{
-    id: string;
-    time: string;
-    timeType: 'morning' | 'afternoon';
-    available: boolean;
-  }>;
-}
-
 // Lấy danh sách tất cả bác sĩ
 export const getAllDoctors = async (): Promise<Doctor[]> => {
   try {

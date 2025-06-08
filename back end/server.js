@@ -31,6 +31,9 @@ app.use('/doctors', doctorRoutes);
 app.use('/bookings', bookingRoutes);
 app.use('/specialties', specialtyRoutes);
 app.use('/clinics', clinicRoutes);
+app.use('/uploads', express.static('public/uploads'));
+
+
 
 // Root route
 app.get('/', (req, res) => {

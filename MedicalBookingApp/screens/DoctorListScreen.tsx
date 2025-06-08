@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,122 +10,106 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
+import {
+  getAllDoctors,
+  getDoctorsBySpecialty,
+  searchDoctors,
+} from '../services/doctorService';
+import {Doctor, Specialty} from '../interfaces';
 
-// Định nghĩa interfaces
-interface Doctor {
-  id: string;
-  name: string;
-  specialty: string;
-  rating: number;
-  experience: string;
-  hospital: string;
-  image: string;
-  consultationFee: number;
-}
-
-type SpecialtyTab = string;
-
-// Sample doctor data - would be fetched from API
-const initialDoctors: Doctor[] = [
-  {
-    id: '1',
-    name: 'PGS.TS Nguyễn Văn D',
-    specialty: 'Thần kinh',
-    rating: 4.9,
-    experience: '15+ năm',
-    hospital: 'BV Đại học Y Dược',
-    image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=face',
-    consultationFee: 300000,
-  },
-  {
-    id: '2',
-    name: 'ThS.BS Phạm Thị E',
-    specialty: 'Sản phụ khoa',
-    rating: 4.8,
-    experience: '12+ năm',
-    hospital: 'BV Từ Dũ',
-    image: 'https://images.unsplash.com/photo-1594824811330-29bb38ce51d3?w=80&h=80&fit=crop&crop=face',
-    consultationFee: 250000,
-  },
-  {
-    id: '3',
-    name: 'BS.CK2 Trần Minh F',
-    specialty: 'Nhi khoa',
-    rating: 4.7,
-    experience: '10+ năm',
-    hospital: 'BV Nhi Đồng 1',
-    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=80&h=80&fit=crop&crop=face',
-    consultationFee: 280000,
-  },
-  {
-    id: '4',
-    name: 'BS. Lê Hoàng G',
-    specialty: 'Da liễu',
-    rating: 4.5,
-    experience: '8+ năm',
-    hospital: 'BV Da Liễu',
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=80&h=80&fit=crop&crop=face',
-    consultationFee: 220000,
-  },
-];
-
-// Sample specialties for filtering
-const specialties = [
-  'Tất cả',
-  'Thần kinh',
-  'Sản phụ khoa',
-  'Nhi khoa',
-  'Da liễu',
-  'Tim mạch',
-  'Tai mũi họng',
-];
-
-const DoctorListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const [doctors, setDoctors] = useState(initialDoctors);
+const DoctorListScreen: React.FC<{navigation: any}> = ({navigation}) => {
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [selectedSpecialty, setSelectedSpecialty] = useState('Tất cả');
-  const [filteredDoctors, setFilteredDoctors] = useState(initialDoctors);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
+  const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
+
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    // In a real app, fetch data from API here
-    fetchDoctors();
+    fetchInitialData();
   }, []);
 
+  useEffect(() => {
+    filterDoctors();
+  }, [doctors, filterDoctors, searchText]);
+
+  const fetchInitialData = async () => {
+    await Promise.all([fetchDoctors()]);
+  };
+
   const fetchDoctors = async () => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setDoctors(initialDoctors);
-      setFilteredDoctors(initialDoctors);
+    try {
+      setLoading(true);
+      const doctorsData = await getAllDoctors();
+      setDoctors(doctorsData);
+      setFilteredDoctors(doctorsData);
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      Alert.alert('Lỗi', 'Không thể tải danh sách bác sĩ. Vui lòng thử lại.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchDoctors();
+    setRefreshing(false);
+  };
+
+  const filterDoctors = () => {
+    let filtered = doctors;
+
+    // Filter by specialty
+    if (selectedSpecialty !== 'all') {
+      filtered = filtered.filter(
+        doctor => doctor.specialty?.id === selectedSpecialty,
+      );
+    }
+
+    // Filter by search text
+    if (searchText.trim() !== '') {
+      const searchLower = searchText.toLowerCase();
+      filtered = filtered.filter(doctor => {
+        const fullName = `${doctor.firstname} ${doctor.lastname}`.toLowerCase();
+        const specialtyName =
+          doctor.specialty?.nameSpecialty?.toLowerCase() || '';
+        const clinicName = doctor.clinic?.nameClinic?.toLowerCase() || '';
+
+        return (
+          fullName.includes(searchLower) ||
+          specialtyName.includes(searchLower) ||
+          clinicName.includes(searchLower)
+        );
+      });
+    }
+
+    setFilteredDoctors(filtered);
   };
 
   const handleSearchChange = (text: string) => {
     setSearchText(text);
-    if (text.trim() === '') {
-      setFilteredDoctors(doctors);
-    } else {
-      const filtered = doctors.filter(doctor =>
-        doctor.name.toLowerCase().includes(text.toLowerCase()) ||
-        doctor.specialty.toLowerCase().includes(text.toLowerCase()) ||
-        doctor.hospital.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredDoctors(filtered);
-    }
   };
 
-  const handleSpecialtyFilter = (specialty: string) => {
-    setSelectedSpecialty(specialty);
-    if (specialty === 'Tất cả') {
-      setFilteredDoctors(doctors);
-    } else {
-      const filtered = doctors.filter(doctor =>
-        doctor.specialty.toLowerCase() === specialty.toLowerCase()
-      );
-      setFilteredDoctors(filtered);
+  const handleSearch = async (keyword: string) => {
+    if (keyword.trim() === '') {
+      await fetchDoctors();
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const searchResults = await searchDoctors(keyword);
+      setDoctors(searchResults);
+      setFilteredDoctors(searchResults);
+    } catch (error) {
+      console.error('Error searching doctors:', error);
+      Alert.alert('Lỗi', 'Không thể tìm kiếm bác sĩ. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -136,51 +120,51 @@ const DoctorListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }).format(amount);
   };
 
-  const renderDoctorItem = ({ item }: { item: Doctor }) => (
+  const getFullName = (doctor: Doctor) => {
+    const title = doctor.title ? `${doctor.title} ` : '';
+    return `${title}${doctor.firstname} ${doctor.lastname}`;
+  };
+
+  const renderDoctorItem = ({item}: {item: Doctor}) => (
     <TouchableOpacity
       style={styles.doctorCard}
-      onPress={() => navigation.navigate('DoctorDetail', { doctorId: item.id })}
-    >
-      <Image source={{ uri: item.image }} style={styles.doctorImage} />
+      onPress={() => navigation.navigate('DoctorDetail', {doctorId: item.doctorId})}>
+      <Image
+        source={{uri: `http://10.0.2.2:5000${item.image}`}} // nếu bạn dùng emulator
+        style={styles.doctorImage}
+        defaultSource={{
+          uri: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=face',
+        }}
+      />
       <View style={styles.doctorInfo}>
-        <Text style={styles.doctorName}>{item.name}</Text>
-        <Text style={styles.doctorSpecialty}>{item.specialty}</Text>
-        <Text style={styles.doctorHospital}>{item.hospital}</Text>
+        <Text style={styles.doctorName}>{getFullName(item)}</Text>
+        <Text style={styles.doctorSpecialty}>
+          {item.specialty?.nameSpecialty || 'Chưa có chuyên khoa'}
+        </Text>
+        <Text style={styles.doctorHospital}>
+          {item.clinic?.nameClinic || 'Chưa có phòng khám'}
+        </Text>
         <View style={styles.doctorDetails}>
           <View style={styles.doctorDetail}>
-            <Text style={styles.doctorDetailLabel}>Kinh nghiệm:</Text>
-            <Text style={styles.doctorDetailValue}>{item.experience}</Text>
-          </View>
-          <View style={styles.doctorDetail}>
             <Text style={styles.doctorDetailLabel}>Giá khám:</Text>
-            <Text style={styles.doctorDetailValue}>{formatCurrency(item.consultationFee)}</Text>
+            <Text style={styles.doctorDetailValue}>
+              {formatCurrency(item.price)}
+            </Text>
           </View>
         </View>
-      </View>
-      <View style={styles.ratingContainer}>
-        <Text style={styles.ratingText}>{item.rating}</Text>
-        <Text style={styles.ratingIcon}>⭐</Text>
       </View>
     </TouchableOpacity>
   );
 
-  const renderSpecialtyItem = ({ item }: { item: SpecialtyTab }) => (
-    <TouchableOpacity
-      style={[
-        styles.specialtyButton,
-        selectedSpecialty === item && styles.specialtyButtonActive,
-      ]}
-      onPress={() => handleSpecialtyFilter(item)}
-    >
-      <Text
-        style={[
-          styles.specialtyButtonText,
-          selectedSpecialty === item && styles.specialtyButtonTextActive,
-        ]}
-      >
-        {item}
+  const renderEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>
+        {searchText || selectedSpecialty !== 'all'
+          ? 'Không tìm thấy bác sĩ phù hợp'
+          : 'Chưa có bác sĩ nào'}
       </Text>
-    </TouchableOpacity>
+      {searchText || selectedSpecialty !== 'all'}
+    </View>
   );
 
   return (
@@ -193,7 +177,9 @@ const DoctorListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <Text style={styles.backButton}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Bác sĩ</Text>
-        <View style={styles.placeholder} />
+        <TouchableOpacity onPress={handleRefresh}>
+          <Text style={styles.refreshButton}>⟳</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
@@ -204,29 +190,45 @@ const DoctorListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           placeholder="Tìm kiếm bác sĩ, chuyên khoa..."
           value={searchText}
           onChangeText={handleSearchChange}
+          onSubmitEditing={() => handleSearch(searchText)}
+          returnKeyType="search"
         />
+        {searchText.length > 0 && (
+          <TouchableOpacity
+            onPress={() => setSearchText('')}
+            style={styles.clearButton}>
+            <Text style={styles.clearButtonText}>✕</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Specialty Filter */}
       <FlatList
         horizontal
-        data={specialties}
-        renderItem={renderSpecialtyItem}
-        keyExtractor={(item) => item}
+        keyExtractor={item => item.id}
         showsHorizontalScrollIndicator={false}
         style={styles.specialtyList}
+        contentContainerStyle={styles.specialtyListContent}
+        data={undefined}
+        renderItem={undefined}
       />
 
       {/* Doctor List */}
       {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Đang tải danh sách bác sĩ...</Text>
+        </View>
       ) : (
         <FlatList
           data={filteredDoctors}
           renderItem={renderDoctorItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.doctorList}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          ListEmptyComponent={renderEmptyComponent}
         />
       )}
     </SafeAreaView>
@@ -257,8 +259,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
   },
-  placeholder: {
-    width: 24,
+  refreshButton: {
+    fontSize: 20,
+    color: '#007AFF',
   },
   searchBar: {
     flexDirection: 'row',
@@ -281,11 +284,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
   },
+  clearButton: {
+    padding: 4,
+  },
+  clearButtonText: {
+    fontSize: 16,
+    color: '#999',
+  },
   specialtyList: {
     maxHeight: 50,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  specialtyListContent: {
+    paddingHorizontal: 10,
   },
   specialtyButton: {
     paddingHorizontal: 16,
@@ -305,13 +318,19 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '500',
   },
-  loader: {
+  loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+  },
   doctorList: {
     padding: 16,
+    flexGrow: 1,
   },
   doctorCard: {
     flexDirection: 'row',
@@ -371,26 +390,18 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
-  ratingContainer: {
-    flexDirection: 'row',
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    backgroundColor: '#FFD700',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingTop: 60,
   },
-  ratingText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000',
-    marginRight: 2,
-  },
-  ratingIcon: {
-    fontSize: 12,
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
   },
 });
 
-export default DoctorListScreen; 
+export default DoctorListScreen;

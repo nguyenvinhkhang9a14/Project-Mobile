@@ -109,16 +109,6 @@ const BookingCompleteScreen: React.FC<BookingCompleteScreenProps> = ({ navigatio
           </View>
         </View>
         
-        {/* Address card */}
-        <View style={styles.addressCard}>
-          <Text style={styles.addressTitle}>Địa chỉ phòng khám</Text>
-          <Text style={styles.addressText}>
-            Tầng 3, Tòa nhà Y, 123 Nguyễn Văn A, Quận 1, TP. Hồ Chí Minh
-          </Text>
-          <TouchableOpacity style={styles.mapButton}>
-            <Text style={styles.mapButtonText}>Xem bản đồ</Text>
-          </TouchableOpacity>
-        </View>
         
         {/* Reminder card */}
         <View style={styles.reminderCard}>

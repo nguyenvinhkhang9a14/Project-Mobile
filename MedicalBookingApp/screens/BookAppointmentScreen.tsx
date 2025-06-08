@@ -91,7 +91,7 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
       }
     } catch (error) {
       console.log('Error fetching time slots:', error);
-      Alert.alert('Lỗi', 'Không thể tải lịch khám. Vui lòng thử lại sau.');
+     
       
       // Fallback to mock data
       const slots: TimeSlot[] = [
