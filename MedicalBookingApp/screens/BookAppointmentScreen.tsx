@@ -29,12 +29,13 @@ interface BookAppointmentScreenProps {
     params: {
       doctorId: string;
       doctorName: string;
+      bookingId?: string;
     };
   };
 }
 
 const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigation, route }) => {
-  const { doctorId, doctorName } = route.params;
+  const { doctorId, doctorName, bookingId } = route.params;
   const { user } = useAuth();
   
   const [loading, setLoading] = useState<boolean>(false);
@@ -185,23 +186,26 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
         throw new Error('Không tìm thấy khung giờ đã chọn');
       }
       
-      // Create booking data
-      const bookingData = {
-        doctorId: doctorId,
-        patientId: user?.userId,
-        date: formattedDate,
-        timeType: selectedSlot.timeType as 'morning' | 'afternoon',
-        symptomDescription: symptomDescription,
-        status: 0, // Pending
-      };
-      
-      // Send booking request to API
-      const response = await bookingService.createBooking(bookingData);
-      
-      Alert.alert(
-        'Đặt lịch thành công',
-        'Lịch khám của bạn đã được đặt. Bạn sẽ nhận được thông báo xác nhận qua email và điện thoại.',
-        [
+      if (bookingId) {
+        // Đổi lịch: gọi rescheduleBooking
+        await bookingService.rescheduleBooking(bookingId, formattedDate, selectedSlot.timeType, symptomDescription);
+        Alert.alert('Thành công', 'Lịch khám của bạn đã được đổi.', [
+          {
+            text: 'OK',
+            onPress: () => navigation.goBack(),
+          },
+        ]);
+      } else {
+        // Đặt mới
+        await bookingService.createBooking({
+          doctorId: doctorId,
+          patientId: user?.userId,
+          date: formattedDate,
+          timeType: selectedSlot.timeType as 'morning' | 'afternoon',
+          symptomDescription: symptomDescription,
+          status: 0, // Pending
+        });
+        Alert.alert('Đặt lịch thành công', 'Lịch khám của bạn đã được đặt. Bạn sẽ nhận được thông báo xác nhận qua email và điện thoại.', [
           {
             text: 'OK',
             onPress: () => navigation.navigate('BookingComplete', {
@@ -210,11 +214,11 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
               time: selectedSlot.time,
             }),
           },
-        ]
-      );
+        ]);
+      }
     } catch (error) {
       console.log('Error booking appointment:', error);
-      Alert.alert('Lỗi', 'Không thể đặt lịch khám. Vui lòng thử lại sau.');
+      Alert.alert('Lỗi', 'Không thể đặt/đổi lịch khám. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }
@@ -383,6 +387,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',

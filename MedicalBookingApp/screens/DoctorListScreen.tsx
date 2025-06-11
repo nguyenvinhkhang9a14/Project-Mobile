@@ -44,6 +44,7 @@ const DoctorListScreen: React.FC<{navigation: any}> = ({navigation}) => {
     try {
       setLoading(true);
       const doctorsData = await getAllDoctors();
+      console.log('Doctors list:', doctorsData);
       setDoctors(doctorsData);
       setFilteredDoctors(doctorsData);
     } catch (error) {
@@ -125,36 +126,40 @@ const DoctorListScreen: React.FC<{navigation: any}> = ({navigation}) => {
     return `${title}${doctor.firstname} ${doctor.lastname}`;
   };
 
-  const renderDoctorItem = ({item}: {item: Doctor}) => (
-    <TouchableOpacity
-      style={styles.doctorCard}
-      onPress={() => navigation.navigate('DoctorDetail', {doctorId: item.doctorId})}>
-      <Image
-        source={{uri: `http://10.0.2.2:5000${item.image}`}} // nếu bạn dùng emulator
-        style={styles.doctorImage}
-        defaultSource={{
-          uri: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=face',
-        }}
-      />
-      <View style={styles.doctorInfo}>
-        <Text style={styles.doctorName}>{getFullName(item)}</Text>
-        <Text style={styles.doctorSpecialty}>
-          {item.specialty?.nameSpecialty || 'Chưa có chuyên khoa'}
-        </Text>
-        <Text style={styles.doctorHospital}>
-          {item.clinic?.nameClinic || 'Chưa có phòng khám'}
-        </Text>
-        <View style={styles.doctorDetails}>
-          <View style={styles.doctorDetail}>
-            <Text style={styles.doctorDetailLabel}>Giá khám:</Text>
-            <Text style={styles.doctorDetailValue}>
-              {formatCurrency(item.price)}
-            </Text>
+  const renderDoctorItem = ({item}: {item: Doctor}) => {
+    console.log('Doctor image path:', item.image);
+    console.log('Doctor object:', item);
+
+    return (
+      <TouchableOpacity
+        style={styles.doctorCard}
+        onPress={() =>
+          navigation.navigate('DoctorDetail', {doctorId: item.doctorId})
+        }>
+        <Image
+          source={{uri: `http://10.0.2.2:5000${item.image}`}}
+          style={styles.doctorImage}
+        />
+        <View style={styles.doctorInfo}>
+          <Text style={styles.doctorName}>{getFullName(item)}</Text>
+          <Text style={styles.doctorSpecialty}>
+            {item.specialty?.nameSpecialty || 'Chưa có chuyên khoa'}
+          </Text>
+          <Text style={styles.doctorHospital}>
+            {item.clinic?.nameClinic || 'Chưa có phòng khám'}
+          </Text>
+          <View style={styles.doctorDetails}>
+            <View style={styles.doctorDetail}>
+              <Text style={styles.doctorDetailLabel}>Giá khám:</Text>
+              <Text style={styles.doctorDetailValue}>
+                {formatCurrency(item.price)}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const renderEmptyComponent = () => (
     <View style={styles.emptyContainer}>
@@ -187,7 +192,7 @@ const DoctorListScreen: React.FC<{navigation: any}> = ({navigation}) => {
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
-          placeholder="Tìm kiếm bác sĩ, chuyên khoa..."
+          placeholder="Tìm kiếm bác sĩ..."
           value={searchText}
           onChangeText={handleSearchChange}
           onSubmitEditing={() => handleSearch(searchText)}
@@ -222,8 +227,8 @@ const DoctorListScreen: React.FC<{navigation: any}> = ({navigation}) => {
       ) : (
         <FlatList
           data={filteredDoctors}
+          keyExtractor={(item) => (item.doctorId?.toString() ?? item.id?.toString() ?? Math.random().toString())}
           renderItem={renderDoctorItem}
-          keyExtractor={item => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.doctorList}
           refreshing={refreshing}
@@ -239,6 +244,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',

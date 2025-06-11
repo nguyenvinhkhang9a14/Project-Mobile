@@ -61,7 +61,7 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({navigation}) => {
               `${doctorTitle} ${doctorFirstName} ${doctorLastName}`.trim();
 
             return {
-              id: booking.bookingId?.toString() || '',
+              id: (booking.bookingId ?? booking.id ?? '').toString(),
               doctorName: doctorName,
               specialty:
                 booking.doctor?.specialty?.nameSpecialty || 'Chuyên khoa',
@@ -139,8 +139,17 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({navigation}) => {
     );
   };
 
-  const handleRescheduleBooking = (bookingId: string) => {
-    navigation.navigate('BookingDetail', {bookingId, mode: 'reschedule'});
+  const handleRescheduleBooking = async (bookingId: string, formattedDate: string, selectedSlot: {timeType: string}) => {
+    if (bookingId) {
+      try {
+        await bookingService.rescheduleBooking(bookingId, formattedDate, selectedSlot.timeType);
+        Alert.alert('Thành công', 'Lịch khám của bạn đã được đổi.', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      } catch (error) {
+        Alert.alert('Lỗi', 'Không thể đổi lịch. Vui lòng thử lại.');
+      }
+    }
   };
 
   const onRefresh = () => {
@@ -280,36 +289,7 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({navigation}) => {
         )}
       </View>
 
-      <View style={styles.actionButtons}>
-        {(item.status === 'confirmed' || item.status === 'pending') && (
-          <>
-            <TouchableOpacity
-              style={styles.rescheduleButton}
-              onPress={() => handleRescheduleBooking(item.id)}>
-              <Text style={styles.rescheduleText}>Đổi lịch</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => handleCancelBooking(item.id)}>
-              <Text style={styles.cancelText}>Hủy lịch</Text>
-            </TouchableOpacity>
-          </>
-        )}
-        {item.status === 'completed' && (
-          <TouchableOpacity
-            style={styles.reviewButton}
-            onPress={() => handleReviewPress(item.id)}>
-            <Text style={styles.reviewText}>Đánh giá</Text>
-          </TouchableOpacity>
-        )}
-        {item.status === 'canceled' && (
-          <TouchableOpacity
-            style={styles.bookAgainButton}
-            onPress={() => handleBookAgainPress(item)}>
-            <Text style={styles.bookAgainText}>Đặt lại</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      
 
       <Text style={styles.bookingId}>Mã đặt lịch: #{item.id}</Text>
     </TouchableOpacity>
@@ -357,7 +337,7 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({navigation}) => {
               styles.tabText,
               activeTab === 'past' && styles.activeTabText,
             ]}>
-            Đã qua ({getPastBookings().length})
+            Đã hủy ({getPastBookings().length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -372,8 +352,8 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({navigation}) => {
           data={
             activeTab === 'upcoming' ? getUpcomingBookings() : getPastBookings()
           }
+          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
           renderItem={renderBookingItem}
-          keyExtractor={item => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -411,6 +391,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',

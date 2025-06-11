@@ -124,10 +124,7 @@ const BookingCompleteScreen: React.FC<BookingCompleteScreenProps> = ({ navigatio
         </View>
         
         {/* Sharing button */}
-        <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-          <Text style={styles.shareIcon}>🔗</Text>
-          <Text style={styles.shareText}>Chia sẻ lịch khám</Text>
-        </TouchableOpacity>
+      
       </ScrollView>
       
       {/* Bottom buttons */}

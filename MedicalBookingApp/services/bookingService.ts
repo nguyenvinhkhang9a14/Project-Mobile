@@ -115,7 +115,7 @@ export const updateBookingStatus = async (bookingId: string, status: number): Pr
 // Hủy lịch khám
 export const cancelBooking = async (bookingId: string): Promise<any> => {
   try {
-    const response = await api.put(`/bookings/${bookingId}/status`, { status: 3 }); // 3 = canceled
+    const response = await api.put(`/bookings/${bookingId}/status`, { status: 'canceled' });
     return response.data;
   } catch (error) {
     console.log('Error canceling booking:', error);
@@ -124,12 +124,11 @@ export const cancelBooking = async (bookingId: string): Promise<any> => {
 };
 
 // Đổi lịch khám
-export const rescheduleBooking = async (bookingId: string, newDate: string, newTimeType: string): Promise<any> => {
+export const rescheduleBooking = async (bookingId: string, newDate: string, newTimeType: string, symptomDescription?: string): Promise<any> => {
   try {
-    const response = await api.put(`/bookings/${bookingId}/reschedule`, {
-      date: newDate,
-      time: newTimeType, // Backend expects 'time' not 'timeType'
-    });
+    const body: any = { date: newDate, timeType: newTimeType };
+    if (typeof symptomDescription !== 'undefined') body.symptomDescription = symptomDescription;
+    const response = await api.put(`/bookings/${bookingId}/reschedule`, body);
     return response.data;
   } catch (error) {
     console.log('Error rescheduling booking:', error);

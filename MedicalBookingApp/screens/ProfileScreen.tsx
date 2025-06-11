@@ -123,9 +123,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Hồ sơ cá nhân</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+        {/* <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
           <Text style={styles.settingsIcon}>⚙️</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
       
       <ScrollView style={styles.scrollView}>
@@ -142,84 +142,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         
-        {/* Medical info section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Thông tin sức khỏe</Text>
-          
-          <View style={styles.infoCard}>
-            <View style={styles.healthMetrics}>
-              <View style={styles.metricItem}>
-                <Text style={styles.metricValue}>{userProfile.medicalInfo.height}</Text>
-                <Text style={styles.metricLabel}>Chiều cao (cm)</Text>
-              </View>
-              <View style={styles.metricDivider} />
-              <View style={styles.metricItem}>
-                <Text style={styles.metricValue}>{userProfile.medicalInfo.weight}</Text>
-                <Text style={styles.metricLabel}>Cân nặng (kg)</Text>
-              </View>
-              <View style={styles.metricDivider} />
-              <View style={styles.metricItem}>
-                <Text style={styles.metricValue}>{userProfile.medicalInfo.bloodType}</Text>
-                <Text style={styles.metricLabel}>Nhóm máu</Text>
-              </View>
-            </View>
-            
-            <View style={styles.bmiContainer}>
-              <View style={styles.bmiInfo}>
-                <Text style={styles.bmiLabel}>Chỉ số BMI</Text>
-                <Text style={styles.bmiValue}>{bmi.toFixed(1)}</Text>
-              </View>
-              <View style={styles.bmiStatus}>
-                <Text style={styles.bmiStatusText}>{bmiStatus}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.medicalInfoItem}>
-              <Text style={styles.medicalInfoLabel}>Dị ứng:</Text>
-              <Text style={styles.medicalInfoValue}>
-                {userProfile.medicalInfo.allergies.join(', ')}
-              </Text>
-            </View>
-            
-            <View style={styles.medicalInfoItem}>
-              <Text style={styles.medicalInfoLabel}>Bệnh mãn tính:</Text>
-              <Text style={styles.medicalInfoValue}>
-                {userProfile.medicalInfo.chronicDiseases.join(', ')}
-              </Text>
-            </View>
-            
-            <TouchableOpacity style={styles.editMedicalButton} onPress={() => navigation.navigate('EditMedicalInfo')}>
-              <Text style={styles.editMedicalText}>Cập nhật thông tin sức khỏe</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+    
         
-        {/* Settings section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cài đặt</Text>
-          
-          <View style={styles.settingCard}>
-            <View style={styles.settingItem}>
-              <Text style={styles.settingLabel}>Thông báo đẩy</Text>
-              <Switch
-                value={notifications}
-                onValueChange={setNotifications}
-                trackColor={{ false: '#d4d4d4', true: '#007AFF' }}
-                thumbColor="#fff"
-              />
-            </View>
-            
-            <View style={styles.settingItem}>
-              <Text style={styles.settingLabel}>Chế độ tối</Text>
-              <Switch
-                value={darkMode}
-                onValueChange={setDarkMode}
-                trackColor={{ false: '#d4d4d4', true: '#007AFF' }}
-                thumbColor="#fff"
-              />
-            </View>
-          </View>
-        </View>
         
         {/* Actions section */}
         <View style={styles.section}>
@@ -274,6 +198,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',

@@ -17,7 +17,7 @@ interface Specialty {
   id: string;
   name: string;
   description: string;
-  doctorCount: number;
+  // doctorCount: number;
   icon: string; // URL or asset name
 }
 
@@ -60,57 +60,57 @@ const SpecialtyListScreen: React.FC<SpecialtyListScreenProps> = ({ navigation })
           id: '1',
           name: 'Tim mạch',
           description: 'Chẩn đoán và điều trị các bệnh lý về tim mạch',
-          doctorCount: 15,
+         
           icon: 'https://img.icons8.com/color/96/000000/heart-with-pulse.png',
         },
         {
           id: '2',
           name: 'Da liễu',
           description: 'Chẩn đoán và điều trị các bệnh về da',
-          doctorCount: 12,
-          icon: 'https://img.icons8.com/color/96/000000/treatment.png',
+       
+          icon: 'https://img.icons8.com/color/96/000000/skin.png',
         },
         {
           id: '3',
           name: 'Thần kinh',
           description: 'Chẩn đoán và điều trị các bệnh về hệ thần kinh',
-          doctorCount: 8,
+        
           icon: 'https://img.icons8.com/color/96/000000/brain.png',
         },
         {
           id: '4',
           name: 'Tai mũi họng',
           description: 'Chẩn đoán và điều trị các bệnh về tai, mũi, họng',
-          doctorCount: 10,
-          icon: 'https://img.icons8.com/color/96/000000/ear.png',
+        
+          icon: 'https://img.icons8.com/color/96/000000/throat.png',
         },
         {
           id: '5',
           name: 'Nhãn khoa',
           description: 'Chẩn đoán và điều trị các bệnh về mắt',
-          doctorCount: 9,
+      
           icon: 'https://img.icons8.com/color/96/000000/ophthalmology.png',
         },
         {
           id: '6',
           name: 'Nhi khoa',
           description: 'Chẩn đoán và điều trị các bệnh ở trẻ em',
-          doctorCount: 14,
-          icon: 'https://img.icons8.com/color/96/000000/pediatrics.png',
+         
+          icon: 'https://img.icons8.com/color/96/000000/baby.png',
         },
         {
           id: '7',
           name: 'Nội tiết',
           description: 'Chẩn đoán và điều trị các bệnh về nội tiết',
-          doctorCount: 7,
+        
           icon: 'https://img.icons8.com/color/96/000000/insulin-pen.png',
         },
         {
           id: '8',
           name: 'Sản phụ khoa',
           description: 'Chẩn đoán và điều trị các bệnh phụ nữ và thai sản',
-          doctorCount: 11,
-          icon: 'https://img.icons8.com/color/96/000000/gynecology.png',
+         
+          icon: 'https://img.icons8.com/color/96/000000/mother.png',
         },
       ];
       
@@ -131,7 +131,6 @@ const SpecialtyListScreen: React.FC<SpecialtyListScreenProps> = ({ navigation })
     >
       <Image source={{ uri: item.icon }} style={styles.specialtyIcon} />
       <Text style={styles.specialtyName}>{item.name}</Text>
-      <Text style={styles.doctorCount}>{item.doctorCount} bác sĩ</Text>
     </TouchableOpacity>
   );
   
@@ -191,6 +190,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',

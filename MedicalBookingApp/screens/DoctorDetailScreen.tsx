@@ -231,6 +231,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+   paddingTop:30  
+    
   },
   loadingContainer: {
     flex: 1,
@@ -275,7 +277,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     height: 56,
     backgroundColor: '#fff',
@@ -293,6 +294,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
+    textAlign: 'center',
+    marginLeft: 100,
   },
   scrollView: {
     flex: 1,

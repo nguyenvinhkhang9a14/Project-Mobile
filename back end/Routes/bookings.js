@@ -61,8 +61,8 @@ router.put('/:id', authMiddleware.authenticateToken, bookingController.update);
 // DELETE /bookings/:id - Delete a booking (authenticated users)
 router.delete('/:id', authMiddleware.authenticateToken, bookingController.delete);
 
-// PUT /bookings/:id/status - Update booking status (doctor or admin)
-router.put('/:id/status', authMiddleware.authenticateToken, authMiddleware.isDoctor, bookingController.updateStatus);
+// PUT /bookings/:id/status - Update booking status (bất kỳ user đăng nhập nào)
+router.put('/:id/status', authMiddleware.authenticateToken, bookingController.updateStatus);
 
 // PUT /bookings/:id/reschedule - Reschedule a booking
 router.put('/:id/reschedule', authMiddleware.authenticateToken, bookingController.reschedule);

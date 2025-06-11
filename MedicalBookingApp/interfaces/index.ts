@@ -10,6 +10,7 @@ export interface User {
 }
 
 export interface Doctor {
+  id: string;
   doctorId: number;
   title?: string;
   firstname: string;
@@ -24,6 +25,7 @@ export interface Doctor {
 }
 
 export interface Booking {
+  id: number;
   bookingId: number;
   patientId: string;
   doctorId: string;

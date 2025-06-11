@@ -276,7 +276,7 @@ exports.getDoctorSchedule = async (req, res) => {
           date,
           status: ["confirmed", "pending"],
         },
-        attributes: ["time", "status"],
+        attributes: ["timeType", "status"],
       });
     }
 
@@ -300,7 +300,7 @@ exports.getDoctorSchedule = async (req, res) => {
     const schedule = {
       availability: availability,
       bookedSlots: bookings.map((booking) => ({
-        time: booking.time,
+        timeType: booking.timeType,
         status: booking.status,
       })),
       dayOfWeek: dayOfWeek,
