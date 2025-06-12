@@ -22,11 +22,9 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState<TabType>('login');
   const [loading, setLoading] = useState(false);
   
-  // Login form state
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   
-  // Register form state
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -35,7 +33,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [role, setRole] = useState<'patient' | 'doctor'>('patient');
   
   const isValidEmail = (email: string) => {
-    // Regex kiểm tra email cơ bản
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
   
@@ -48,7 +45,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     try {
       setLoading(true);
       await login(loginEmail, loginPassword);
-      // Navigation will be handled by the AuthContext
     } catch (error) {
       Alert.alert('Login Failed', typeof error === 'string' ? error : 'Please check your credentials and try again');
     } finally {

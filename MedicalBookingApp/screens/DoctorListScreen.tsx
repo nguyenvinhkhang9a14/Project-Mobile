@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import {
   getAllDoctors,
-  getDoctorsBySpecialty,
   searchDoctors,
 } from '../services/doctorService';
 import {Doctor, Specialty} from '../interfaces';
@@ -64,7 +63,6 @@ const DoctorListScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const filterDoctors = () => {
     let filtered = doctors;
 
-    // Filter by specialty
     if (selectedSpecialty !== 'all') {
       filtered = filtered.filter(
         doctor => doctor.specialty?.id === selectedSpecialty,
@@ -176,7 +174,7 @@ const DoctorListScreen: React.FC<{navigation: any}> = ({navigation}) => {
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#f8f8f8" barStyle="dark-content" />
 
-      {/* Header */}
+  
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}>←</Text>
@@ -187,7 +185,7 @@ const DoctorListScreen: React.FC<{navigation: any}> = ({navigation}) => {
         </TouchableOpacity>
       </View>
 
-      {/* Search Bar */}
+
       <View style={styles.searchBar}>
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
@@ -206,8 +204,6 @@ const DoctorListScreen: React.FC<{navigation: any}> = ({navigation}) => {
           </TouchableOpacity>
         )}
       </View>
-
-      {/* Specialty Filter */}
       <FlatList
         horizontal
         keyExtractor={item => item.id}
@@ -218,7 +214,6 @@ const DoctorListScreen: React.FC<{navigation: any}> = ({navigation}) => {
         renderItem={undefined}
       />
 
-      {/* Doctor List */}
       {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#007AFF" />

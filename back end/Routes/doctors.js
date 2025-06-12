@@ -1,27 +1,26 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer"); // Thêm dòng này
+const multer = require("multer"); 
 const doctorController = require("../Controller/doctor");
 const authMiddleware = require("../Middleware/authMiddleware");
 
-// Cấu hình lưu trữ ảnh
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Đảm bảo thư mục này tồn tại
+    cb(null, "uploads/"); 
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
   },
 });
-const upload = multer({ storage: storage }); // Và dòng này
+const upload = multer({ storage: storage }); 
 
-// GET /doctors - Get all doctors (public)
+// Get all doctors 
 router.get("/", doctorController.findAll);
 
-// GET /doctors/:id - Get doctor by ID (public)
+// Get doctor by ID 
 router.get("/:id", doctorController.findOne);
 
-// POST /doctors - Create a new doctor (admin only)
+// Create a new doctor 
 router.post(
   "/",
   authMiddleware.authenticateToken,
@@ -30,7 +29,7 @@ router.post(
   doctorController.create
 );
 
-// PUT /doctors/:id - Update a doctor (admin only)
+// Update a doctor 
 router.put(
   "/:id",
   authMiddleware.authenticateToken,
@@ -39,7 +38,7 @@ router.put(
   doctorController.update
 );
 
-// DELETE /doctors/:id - Delete a doctor (admin only)
+//  Delete a doctor 
 router.delete(
   "/:id",
   authMiddleware.authenticateToken,
@@ -47,13 +46,13 @@ router.delete(
   doctorController.delete
 );
 
-// GET /doctors/specialty/:specialtyId - Get doctors by specialty (public)
+//  Get doctors by specialty 
 router.get("/specialty/:specialtyId", doctorController.getDoctorsBySpecialty);
 
-// GET /doctors/clinic/:clinicId - Get doctors by clinic (public)
+//  Get doctors by clinic 
 router.get("/clinic/:clinicId", doctorController.getDoctorsByClinic);
 
-// GET /doctors/profile - Get current doctor's profile (doctor only)
+//Get current doctor's profile (doctor only)
 router.get(
   "/profile",
   authMiddleware.authenticateToken,
@@ -61,10 +60,10 @@ router.get(
   doctorController.getMyProfile
 );
 
-// GET /doctors/:id/schedule - Get doctor's schedule (public)
+//  Get doctor's schedule 
 router.get("/:id/schedule", doctorController.getDoctorSchedule);
 
-// PUT /doctors/availability - Update doctor's availability (doctor only)
+//  Update doctor's availability (doctor only)
 router.put(
   "/availability",
   authMiddleware.authenticateToken,

@@ -53,7 +53,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
     } catch (error) {
       console.log('Error loading user profile:', error);
       
-      // Fallback to user context data
       if (user) {
         setFirstName(user.firstname || '');
         setLastName(user.lastname || '');
@@ -74,7 +73,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
     setSaving(true);
     
     try {
-      // Save profile to API
       const updatedProfile = await userService.updateUserProfile({
         firstname: firstName,
         lastname: lastName,
@@ -83,7 +81,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
         address: address,
       });
       
-      // Update local auth context
       if (updateUserInfo) {
         updateUserInfo({
           firstname: firstName,

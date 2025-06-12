@@ -55,7 +55,7 @@ const BookingDetailScreen: React.FC<BookingDetailScreenProps> = ({ navigation, r
       const response = await bookingService.getBookingDetail(bookingId);
       
       if (response) {
-        // Transform API response to match our component props
+    
         setBooking({
           id: (response.bookingId ?? '').toString(),
           doctorName: `${response.doctor?.title || 'BS.'} ${response.doctor?.firstname || ''} ${response.doctor?.lastname || ''}`,
@@ -68,36 +68,9 @@ const BookingDetailScreen: React.FC<BookingDetailScreenProps> = ({ navigation, r
           description: response.symptomDescription || 'Không có mô tả',
           doctorImage: response.doctor?.image || 'https://via.placeholder.com/150',
         });
-      } else {
-        // Fallback to mock data
-        setBooking({
-          id: bookingId,
-          doctorName: 'BS. Trần Văn B',
-          doctorId: '1',
-          specialty: 'Tim mạch',
-          hospitalName: 'Bệnh viện Chợ Rẫy',
-          date: '2023-06-15',
-          time: '09:00',
-          status: 'Đã xác nhận',
-          description: 'Đau ngực, khó thở khi gắng sức',
-          doctorImage: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=60&h=60&fit=crop&crop=face',
-        });
       }
     } catch (error) {
       console.log('Error fetching booking details:', error);
-      // Fallback to mock data
-      setBooking({
-        id: bookingId,
-        doctorName: 'BS. Trần Văn B',
-        doctorId: '1',
-        specialty: 'Tim mạch',
-        hospitalName: 'Bệnh viện Chợ Rẫy',
-        date: '2023-06-15',
-        time: '09:00',
-        status: 'Đã xác nhận',
-        description: 'Đau ngực, khó thở khi gắng sức',
-        doctorImage: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=60&h=60&fit=crop&crop=face',
-      });
     } finally {
       setLoading(false);
     }
@@ -133,7 +106,7 @@ const BookingDetailScreen: React.FC<BookingDetailScreenProps> = ({ navigation, r
       navigation.navigate('BookAppointment', {
         doctorId: booking.doctorId,
         doctorName: booking.doctorName,
-        bookingId: booking.id, // Pass bookingId for rescheduling
+        bookingId: booking.id,
       });
     }
   };
@@ -284,7 +257,6 @@ const BookingDetailScreen: React.FC<BookingDetailScreenProps> = ({ navigation, r
         
   
         
-        {/* Bottom padding */}
         <View style={{ height: 80 }} />
       </ScrollView>
     </SafeAreaView>

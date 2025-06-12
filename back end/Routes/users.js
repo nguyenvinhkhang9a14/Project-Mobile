@@ -4,19 +4,19 @@ const router = express.Router();
 const userController = require('../Controller/user');
 const authMiddleware = require('../Middleware/authMiddleware');
 
-// GET /api/users - Get all users (admin only)
+//  Get all users 
 router.get('/', authMiddleware.authenticateToken, authMiddleware.isAdmin, userController.findAll);
 
-// GET /api/users/:id - Get user by ID (self or admin)
+// G Get user by ID 
 router.get('/:id', authMiddleware.authenticateToken, authMiddleware.isSelfOrAdmin, userController.findOne);
 
-// POST /api/users - Create a new user (public - for registration)
+// Create a new user
 router.post('/', userController.create);
 
-// PUT /api/users/:id - Update a user (self or admin)
+// Update a user 
 router.put('/:id', authMiddleware.authenticateToken, authMiddleware.isSelfOrAdmin, userController.update);
 
-// DELETE /api/users/:id - Delete a user (admin only)
+//  Delete a user 
 router.delete('/:id', authMiddleware.authenticateToken, authMiddleware.isAdmin, userController.delete);
 
 module.exports = router;

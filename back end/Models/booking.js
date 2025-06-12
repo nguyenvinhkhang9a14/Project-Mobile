@@ -35,7 +35,6 @@ module.exports = (sequelize, DataTypes) => {
       as: 'doctor',
     });
     
-    // Patient is actually a user with role='patient'
     Booking.belongsTo(models.user, {
       foreignKey: 'patientId',
       as: 'patient'

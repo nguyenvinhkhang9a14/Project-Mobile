@@ -33,7 +33,7 @@ const RootNavigator = () => {
 
 const App = () => {
   return (
-    <SafeAreaProvider edges={['top', 'right', 'left']}>
+    <SafeAreaProvider >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <AuthProvider>
         <RootNavigator />

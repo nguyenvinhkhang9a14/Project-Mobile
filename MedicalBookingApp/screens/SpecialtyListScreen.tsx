@@ -18,7 +18,7 @@ interface Specialty {
   name: string;
   description: string;
   // doctorCount: number;
-  icon: string; // URL or asset name
+  icon: string; 
 }
 
 interface SpecialtyListScreenProps {
@@ -53,7 +53,6 @@ const SpecialtyListScreen: React.FC<SpecialtyListScreenProps> = ({ navigation })
   const fetchSpecialties = async () => {
     setLoading(true);
     
-    // In a real app, fetch from API
     setTimeout(() => {
       const mockSpecialties: Specialty[] = [
         {

@@ -48,10 +48,9 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({navigation}) => {
 
     try {
       const response = await bookingService.getMyBookings();
-      console.log('API Response:', response); // Debug log
+      console.log('API Response:', response); 
 
       if (response && Array.isArray(response)) {
-        // Transform API response to match our display format
         const formattedBookings: BookingDisplay[] = response.map(
           (booking: Booking) => {
             const doctorTitle = booking.doctor?.title || 'BS.';
@@ -310,7 +309,6 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({navigation}) => {
         <View style={styles.placeholder} />
       </View>
 
-      {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[

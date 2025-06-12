@@ -26,24 +26,11 @@ const BookingCompleteScreen: React.FC<BookingCompleteScreenProps> = ({ navigatio
   const { doctorName, date, time } = route.params;
   const bookingId = `BK${Math.floor(10000 + Math.random() * 90000)}`; // Generate random booking ID
   
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `Tôi đã đặt lịch khám với ${doctorName} vào lúc ${time}, ${date}. Mã đặt lịch: ${bookingId}`,
-        title: 'Lịch khám Medical Booking App',
-      });
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
-  
   const handleViewBookings = () => {
-    // Navigate to user's appointments/bookings screen
     navigation.navigate('MyBookings');
   };
   
   const handleGoHome = () => {
-    // Navigate to home screen and reset navigation stack
     navigation.reset({
       index: 0,
       routes: [{ name: 'MainTabs' }],
@@ -55,7 +42,6 @@ const BookingCompleteScreen: React.FC<BookingCompleteScreenProps> = ({ navigatio
       <StatusBar backgroundColor="#f8f8f8" barStyle="dark-content" />
       
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Success Icon */}
         <View style={styles.successIconContainer}>
           <View style={styles.successCircle}>
             <Text style={styles.checkmark}>✓</Text>
@@ -67,7 +53,6 @@ const BookingCompleteScreen: React.FC<BookingCompleteScreenProps> = ({ navigatio
           Lịch khám của bạn đã được xác nhận. Chúng tôi đã gửi thông tin chi tiết qua email và SMS.
         </Text>
         
-        {/* Booking details card */}
         <View style={styles.bookingCard}>
           <View style={styles.bookingHeader}>
             <Text style={styles.bookingTitle}>Thông tin lịch khám</Text>
@@ -123,11 +108,9 @@ const BookingCompleteScreen: React.FC<BookingCompleteScreenProps> = ({ navigatio
           </View>
         </View>
         
-        {/* Sharing button */}
       
       </ScrollView>
       
-      {/* Bottom buttons */}
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.secondaryButton} onPress={handleViewBookings}>
           <Text style={styles.secondaryButtonText}>Xem lịch đã đặt</Text>

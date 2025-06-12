@@ -17,10 +17,9 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Enable CORS for all routes
 app.use(
   cors({
-    origin: "*", // Allow all origins for development
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -36,15 +35,12 @@ app.use("/clinics", clinicRoutes);
 const path = require("path");
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
-// Root route
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to Medical Booking API" });
 });
 
-// Set port
 const PORT = process.env.PORT || 5000;
 
-// Sync database and start server
 db.sequelize
   .sync()
   .then(() => {

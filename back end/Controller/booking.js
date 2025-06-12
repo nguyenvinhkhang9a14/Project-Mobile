@@ -16,13 +16,9 @@ exports.create = async (req, res) => {
 
     const booking = await Booking.create(bookingData);
 
-    // Lấy thông tin bệnh nhân
     const patient = await User.findByPk(req.user.userId);
-    // Lấy thông tin bác sĩ
     const doctor = await Doctor.findByPk(booking.doctorId);
     const clinic = await Clinic.findByPk(doctor.clinicId);
-
-    // Gửi mail xác nhận
 
     await emailService.sendBookingConfirmation(patient.email, {
       firstname: patient.firstname,

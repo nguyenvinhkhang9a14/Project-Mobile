@@ -12,8 +12,8 @@ import {
   Alert,
   useWindowDimensions,
 } from 'react-native';
-import {getDoctorById} from '../services/doctorService'; // Import service
-import {Doctor} from '../interfaces'; // Import interface
+import {getDoctorById} from '../services/doctorService'; 
+import {Doctor} from '../interfaces'; 
 import RenderHTML from 'react-native-render-html';
 
 interface DoctorDetailScreenProps {
@@ -68,7 +68,6 @@ const DoctorDetailScreen: React.FC<DoctorDetailScreenProps> = ({
     });
   };
 
-  // Retry function để thử lại khi có lỗi
   const handleRetry = () => {
     fetchDoctorDetails();
   };
@@ -106,11 +105,8 @@ const DoctorDetailScreen: React.FC<DoctorDetailScreenProps> = ({
       </View>
     );
   }
-
-  // Tạo tên đầy đủ từ firstname và lastname
   const fullName = `${doctor.firstname} ${doctor.lastname}`;
 
-  // Tạo URL hình ảnh đầy đủ nếu cần
 
   return (
     <SafeAreaView style={styles.container}>
@@ -127,10 +123,10 @@ const DoctorDetailScreen: React.FC<DoctorDetailScreenProps> = ({
       </View>
 
       <ScrollView style={styles.scrollView}>
-        {/* Doctor Info Card */}
+ 
         <View style={styles.doctorCard}>
           <Image
-            source={{uri: `http://10.0.2.2:5000${doctor.image}`}} // nếu bạn dùng emulator
+            source={{uri: `http://10.0.2.2:5000${doctor.image}`}} 
             style={styles.doctorImage}
             defaultSource={{
               uri: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=face',
@@ -155,7 +151,7 @@ const DoctorDetailScreen: React.FC<DoctorDetailScreenProps> = ({
           </View>
         </View>
 
-        {/* Tab Content */}
+
         <View style={styles.tabContent}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Giới thiệu</Text>
@@ -211,7 +207,6 @@ const DoctorDetailScreen: React.FC<DoctorDetailScreenProps> = ({
         </View>
       </ScrollView>
 
-      {/* Bottom Action Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Giá khám</Text>
