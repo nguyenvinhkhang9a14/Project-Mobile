@@ -1,36 +1,74 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const doctorController = require('../Controller/doctor');
-const authMiddleware = require('../Middleware/authMiddleware');
+const multer = require("multer"); 
+const doctorController = require("../Controller/doctor");
+const authMiddleware = require("../Middleware/authMiddleware");
 
-// GET /doctors - Get all doctors (public)
-router.get('/', doctorController.findAll);
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); 
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const upload = multer({ storage: storage }); 
 
-// GET /doctors/:id - Get doctor by ID (public)
-router.get('/:id', doctorController.findOne);
+// Get all doctors 
+router.get("/", doctorController.findAll);
 
-// POST /doctors - Create a new doctor (admin only)
-router.post('/', authMiddleware.authenticateToken, authMiddleware.isAdmin, doctorController.create);
+// Get doctor by ID 
+router.get("/:id", doctorController.findOne);
 
-// PUT /doctors/:id - Update a doctor (admin only)
-router.put('/:id', authMiddleware.authenticateToken, authMiddleware.isAdmin, doctorController.update);
+// Create a new doctor 
+router.post(
+  "/",
+  authMiddleware.authenticateToken,
+  authMiddleware.isAdmin,
+  upload.single("image"),
+  doctorController.create
+);
 
-// DELETE /doctors/:id - Delete a doctor (admin only)
-router.delete('/:id', authMiddleware.authenticateToken, authMiddleware.isAdmin, doctorController.delete);
+// Update a doctor 
+router.put(
+  "/:id",
+  authMiddleware.authenticateToken,
+  authMiddleware.isAdmin,
+  upload.single("image"),
+  doctorController.update
+);
 
-// GET /doctors/specialty/:specialtyId - Get doctors by specialty (public)
-router.get('/specialty/:specialtyId', doctorController.getDoctorsBySpecialty);
+//  Delete a doctor 
+router.delete(
+  "/:id",
+  authMiddleware.authenticateToken,
+  authMiddleware.isAdmin,
+  doctorController.delete
+);
 
-// GET /doctors/clinic/:clinicId - Get doctors by clinic (public)
-router.get('/clinic/:clinicId', doctorController.getDoctorsByClinic);
+//  Get doctors by specialty 
+router.get("/specialty/:specialtyId", doctorController.getDoctorsBySpecialty);
 
-// GET /doctors/profile - Get current doctor's profile (doctor only)
-router.get('/profile', authMiddleware.authenticateToken, authMiddleware.isDoctor, doctorController.getMyProfile);
+//  Get doctors by clinic 
+router.get("/clinic/:clinicId", doctorController.getDoctorsByClinic);
 
-// GET /doctors/:id/schedule - Get doctor's schedule (public)
-router.get('/:id/schedule', doctorController.getDoctorSchedule);
+//Get current doctor's profile (doctor only)
+router.get(
+  "/profile",
+  authMiddleware.authenticateToken,
+  authMiddleware.isDoctor,
+  doctorController.getMyProfile
+);
 
-// PUT /doctors/availability - Update doctor's availability (doctor only)
-router.put('/availability', authMiddleware.authenticateToken, authMiddleware.isDoctor, doctorController.updateAvailability);
+//  Get doctor's schedule 
+router.get("/:id/schedule", doctorController.getDoctorSchedule);
+
+//  Update doctor's availability (doctor only)
+router.put(
+  "/availability",
+  authMiddleware.authenticateToken,
+  authMiddleware.isDoctor,
+  doctorController.updateAvailability
+);
 
 module.exports = router;

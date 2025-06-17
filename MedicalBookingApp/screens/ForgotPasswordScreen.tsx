@@ -23,10 +23,6 @@ const ForgotPasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
     try {
       setLoading(true);
-      // In a real app, this would call an API endpoint
-      // await api.post('/auth/reset-password', { email });
-      
-      // Simulate API call
       setTimeout(() => {
         setLoading(false);
         Alert.alert(

@@ -11,20 +11,22 @@ export interface User {
 
 export interface Doctor {
   id: string;
+  doctorId: number;
   title?: string;
   firstname: string;
   lastname: string;
   specialty: Specialty;
+  bioHTML: string;
+  description: string;
   clinic?: Clinic;
-  rating?: number;
   experience?: string;
   image?: string;
-  consultationFee: number;
-  availability: 'available' | 'busy';
+  price: number;
 }
 
 export interface Booking {
-  id: string;
+  id: number;
+  bookingId: number;
   patientId: string;
   doctorId: string;
   date: string;
@@ -70,4 +72,4 @@ export interface TimeSlot {
   timeType: 'morning' | 'afternoon';
   date: string;
   isAvailable: boolean;
-} 
+}

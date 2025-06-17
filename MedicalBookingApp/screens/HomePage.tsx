@@ -15,13 +15,11 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 
-// Import components
 import IconButton, { Icon } from '../components/IconButton';
 import AppointmentCard from '../components/AppointmentCard';
 import DoctorCard from '../components/DoctorCard';
 import NewsCard from '../components/NewsCard';
 
-// Import services
 import * as bookingService from '../services/bookingService';
 import * as doctorService from '../services/doctorService';
 import * as newsService from '../services/newsService';
@@ -83,7 +81,7 @@ export default function HomeScreen() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Load user profile
+  
       try {
         const userProfile = await userService.getCurrentUserProfile();
         if (userProfile) {
@@ -96,11 +94,9 @@ export default function HomeScreen() {
         setUserName(user?.firstname || 'Người dùng');
       }
       
-      // Load upcoming appointments
       try {
         const appointments = await bookingService.getUpcomingAppointments();
         if (appointments && appointments.length > 0) {
-          // Transform API data to match our component props
           const formattedAppointments = appointments.map(appointment => ({
             id: appointment.id.toString(),
             doctorName: `BS. ${appointment.doctor.firstname} ${appointment.doctor.lastname}`,
@@ -113,7 +109,6 @@ export default function HomeScreen() {
           }));
           setUpcomingAppointments(formattedAppointments);
         } else {
-          // Fallback to mock data if no appointments
           setUpcomingAppointments([
             {
               id: '1',
@@ -129,7 +124,6 @@ export default function HomeScreen() {
         }
       } catch (error) {
         console.log('Error loading appointments:', error);
-        // Fallback to mock data
         setUpcomingAppointments([
           {
             id: '1',
@@ -143,26 +137,22 @@ export default function HomeScreen() {
           },
         ]);
       }
-      
-      // Load featured doctors
       try {
         const doctors = await doctorService.getFeaturedDoctors();
-        if (doctors && doctors.length > 0) {
-          // Transform API data to match our component props
+        if (doctors && doctors.length > 0) {s
           const formattedDoctors = doctors.map(doctor => ({
             id: doctor.id.toString(),
             name: `${doctor.firstname} ${doctor.lastname}`,
             specialty: doctor.specialty?.nameSpecialty || 'Chuyên khoa',
-            rating: 4.8, // Assuming rating is not in API
-            experience: '10+ năm', // Assuming experience is not in API
+            rating: 4.8,
+            experience: '10+ năm', 
             hospital: doctor.clinic?.nameClinic || 'Bệnh viện',
             image: doctor.image || 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=80&h=80&fit=crop&crop=face',
-            consultationFee: 300000, // Assuming fee is not in API
-            availability: 'available', // Assuming availability is not in API
+            consultationFee: 300000, 
+            availability: 'available', 
           }));
           setFeaturedDoctors(formattedDoctors);
         } else {
-          // Fallback to mock data if no doctors
           setFeaturedDoctors([
             {
               id: '1',
@@ -179,7 +169,6 @@ export default function HomeScreen() {
         }
       } catch (error) {
         console.log('Error loading doctors:', error);
-        // Fallback to mock data
         setFeaturedDoctors([
           {
             id: '1',
@@ -195,13 +184,11 @@ export default function HomeScreen() {
         ]);
       }
       
-      // Load news
       try {
         const news = await newsService.getHealthNews();
         if (news && news.length > 0) {
           setNewsItems(news);
         } else {
-          // Fallback to mock data if no news
           setNewsItems([
             {
               id: '1',
@@ -216,7 +203,6 @@ export default function HomeScreen() {
         }
       } catch (error) {
         console.log('Error fetching news:', error);
-        // Fallback to mock data
         setNewsItems([
           {
             id: '1',
@@ -253,7 +239,6 @@ export default function HomeScreen() {
   const handleLogout = async () => {
     try {
       await logout();
-      // Navigation will be handled by AuthContext
     } catch (error) {
       Alert.alert('Lỗi', 'Đăng xuất thất bại. Vui lòng thử lại.');
     }
@@ -276,7 +261,7 @@ export default function HomeScreen() {
             try {
               await bookingService.cancelBooking(appointmentId);
               Alert.alert('Thành công', 'Đã hủy lịch khám thành công');
-              loadData(); // Reload data
+              loadData();
             } catch (error) {
               Alert.alert('Lỗi', 'Không thể hủy lịch khám. Vui lòng thử lại sau.');
             }
@@ -295,7 +280,6 @@ export default function HomeScreen() {
   };
 
   const handleViewNewsDetails = (newsId: string) => {
-    // Navigate to news detail screen if available
     Alert.alert('Tin tức', 'Chi tiết tin tức sẽ được hiển thị ở đây');
   };
 
@@ -314,7 +298,6 @@ export default function HomeScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>{getGreeting()}</Text>
@@ -328,7 +311,6 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Quick Actions */}
       <View style={styles.quickActionsContainer}>
         <IconButton
           icon="medical"
@@ -356,7 +338,6 @@ export default function HomeScreen() {
         />
       </View>
 
-      {/* Upcoming Appointments */}
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Lịch khám sắp tới</Text>
@@ -389,7 +370,6 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Featured Doctors */}
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Bác sĩ nổi bật</Text>
@@ -406,8 +386,6 @@ export default function HomeScreen() {
           />
         ))}
       </View>
-
-      {/* Health News */}
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Tin tức sức khỏe</Text>
@@ -431,7 +409,8 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8f8f8',
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',

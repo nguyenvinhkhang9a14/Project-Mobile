@@ -21,20 +21,12 @@ interface ProfileScreenProps {
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState<boolean>(true);
-  const [darkMode, setDarkMode] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState({
     firstname: '',
     lastname: '',
     email: '',
     phoneNumber: '',
     avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=face',
-    medicalInfo: {
-      height: 175, // cm
-      weight: 70, // kg
-      bloodType: 'O+',
-      allergies: ['Penicillin', 'Hải sản'],
-      chronicDiseases: ['Không'],
-    },
   });
   
   useEffect(() => {
@@ -52,25 +44,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           email: profile.email || '',
           phoneNumber: profile.phoneNumber || '',
         });
-        
-        // Load health data if available
-        try {
-          const healthData = await userService.getUserHealthData();
-          if (healthData) {
-            setUserProfile(prev => ({
-              ...prev,
-              medicalInfo: {
-                height: healthData.height || 175,
-                weight: healthData.weight || 70,
-                bloodType: healthData.bloodType || 'O+',
-                allergies: healthData.allergies || ['Không'],
-                chronicDiseases: healthData.chronicDiseases || ['Không'],
-              }
-            }));
-          }
-        } catch (error) {
-          console.log('Error loading health data:', error);
-        }
       }
     } catch (error) {
       console.log('Error loading user profile:', error);
@@ -92,7 +65,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           onPress: async () => {
             try {
               await logout();
-              // Navigation will be handled by AuthContext
+    
             } catch (error) {
               Alert.alert('Lỗi', 'Đăng xuất thất bại. Vui lòng thử lại.');
             }
@@ -102,20 +75,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     );
   };
   
-  const calculateBMI = (weight: number, heightInCm: number): number => {
-    const heightInM = heightInCm / 100;
-    return weight / (heightInM * heightInM);
-  };
-  
-  const getBMIStatus = (bmi: number): string => {
-    if (bmi < 18.5) return 'Thiếu cân';
-    if (bmi >= 18.5 && bmi < 25) return 'Bình thường';
-    if (bmi >= 25 && bmi < 30) return 'Thừa cân';
-    return 'Béo phì';
-  };
-  
-  const bmi = calculateBMI(userProfile.medicalInfo.weight, userProfile.medicalInfo.height);
-  const bmiStatus = getBMIStatus(bmi);
   
   return (
     <SafeAreaView style={styles.container}>
@@ -123,9 +82,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Hồ sơ cá nhân</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-          <Text style={styles.settingsIcon}>⚙️</Text>
-        </TouchableOpacity>
       </View>
       
       <ScrollView style={styles.scrollView}>
@@ -142,86 +98,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         
-        {/* Medical info section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Thông tin sức khỏe</Text>
-          
-          <View style={styles.infoCard}>
-            <View style={styles.healthMetrics}>
-              <View style={styles.metricItem}>
-                <Text style={styles.metricValue}>{userProfile.medicalInfo.height}</Text>
-                <Text style={styles.metricLabel}>Chiều cao (cm)</Text>
-              </View>
-              <View style={styles.metricDivider} />
-              <View style={styles.metricItem}>
-                <Text style={styles.metricValue}>{userProfile.medicalInfo.weight}</Text>
-                <Text style={styles.metricLabel}>Cân nặng (kg)</Text>
-              </View>
-              <View style={styles.metricDivider} />
-              <View style={styles.metricItem}>
-                <Text style={styles.metricValue}>{userProfile.medicalInfo.bloodType}</Text>
-                <Text style={styles.metricLabel}>Nhóm máu</Text>
-              </View>
-            </View>
-            
-            <View style={styles.bmiContainer}>
-              <View style={styles.bmiInfo}>
-                <Text style={styles.bmiLabel}>Chỉ số BMI</Text>
-                <Text style={styles.bmiValue}>{bmi.toFixed(1)}</Text>
-              </View>
-              <View style={styles.bmiStatus}>
-                <Text style={styles.bmiStatusText}>{bmiStatus}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.medicalInfoItem}>
-              <Text style={styles.medicalInfoLabel}>Dị ứng:</Text>
-              <Text style={styles.medicalInfoValue}>
-                {userProfile.medicalInfo.allergies.join(', ')}
-              </Text>
-            </View>
-            
-            <View style={styles.medicalInfoItem}>
-              <Text style={styles.medicalInfoLabel}>Bệnh mãn tính:</Text>
-              <Text style={styles.medicalInfoValue}>
-                {userProfile.medicalInfo.chronicDiseases.join(', ')}
-              </Text>
-            </View>
-            
-            <TouchableOpacity style={styles.editMedicalButton} onPress={() => navigation.navigate('EditMedicalInfo')}>
-              <Text style={styles.editMedicalText}>Cập nhật thông tin sức khỏe</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        
-        {/* Settings section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cài đặt</Text>
-          
-          <View style={styles.settingCard}>
-            <View style={styles.settingItem}>
-              <Text style={styles.settingLabel}>Thông báo đẩy</Text>
-              <Switch
-                value={notifications}
-                onValueChange={setNotifications}
-                trackColor={{ false: '#d4d4d4', true: '#007AFF' }}
-                thumbColor="#fff"
-              />
-            </View>
-            
-            <View style={styles.settingItem}>
-              <Text style={styles.settingLabel}>Chế độ tối</Text>
-              <Switch
-                value={darkMode}
-                onValueChange={setDarkMode}
-                trackColor={{ false: '#d4d4d4', true: '#007AFF' }}
-                thumbColor="#fff"
-              />
-            </View>
-          </View>
-        </View>
-        
-        {/* Actions section */}
+    
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tài khoản</Text>
           
@@ -274,6 +151,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',

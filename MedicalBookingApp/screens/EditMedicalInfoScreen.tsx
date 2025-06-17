@@ -9,7 +9,6 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import * as userService from '../services/userService';
 
@@ -17,13 +16,6 @@ interface EditMedicalInfoScreenProps {
   navigation: any;
 }
 
-interface MedicalInfo {
-  height: number;
-  weight: number;
-  bloodType: string;
-  allergies: string[];
-  chronicDiseases: string[];
-}
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 

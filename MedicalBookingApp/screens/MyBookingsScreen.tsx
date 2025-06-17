@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,103 +11,90 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import * as bookingService from '../services/bookingService';
+import {Booking} from '../interfaces';
 
-interface Booking {
+interface BookingDisplay {
   id: string;
   doctorName: string;
   specialty: string;
-  hospitalName: string;
+  nameClinic: string;
   date: string;
   time: string;
   status: 'pending' | 'confirmed' | 'completed' | 'canceled';
+  originalBooking: Booking;
 }
 
 interface MyBookingsScreenProps {
   navigation: any;
 }
 
-const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({ navigation }) => {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({navigation}) => {
+  const [bookings, setBookings] = useState<BookingDisplay[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const isFocused = useIsFocused();
-  
+
   useEffect(() => {
     if (isFocused) {
       fetchBookings();
     }
   }, [isFocused]);
-  
+
   const fetchBookings = async () => {
     setLoading(true);
-    
+
     try {
-      // Fetch bookings from API
       const response = await bookingService.getMyBookings();
-      
+      console.log('API Response:', response); 
+
       if (response && Array.isArray(response)) {
-        // Transform API response to match our component props
-        const formattedBookings: Booking[] = response.map(booking => ({
-          id: booking.id.toString(),
-          doctorName: `${booking.doctor.title || 'BS.'} ${booking.doctor.firstname} ${booking.doctor.lastname}`,
-          specialty: booking.doctor.specialty?.nameSpecialty || 'Chuyên khoa',
-          hospitalName: booking.doctor.clinic?.nameClinic || 'Bệnh viện',
-          date: booking.date,
-          time: booking.timeType === 'morning' ? '09:00' : '14:30',
-          status: getStatusFromCode(booking.status),
-        }));
-        
+        const formattedBookings: BookingDisplay[] = response.map(
+          (booking: Booking) => {
+            const doctorTitle = booking.doctor?.title || 'BS.';
+            const doctorFirstName = booking.doctor?.firstname || '';
+            const doctorLastName = booking.doctor?.lastname || '';
+            const doctorName =
+              `${doctorTitle} ${doctorFirstName} ${doctorLastName}`.trim();
+
+            return {
+              id: (booking.bookingId ?? booking.id ?? '').toString(),
+              doctorName: doctorName,
+              specialty:
+                booking.doctor?.specialty?.nameSpecialty || 'Chuyên khoa',
+              nameClinic: booking.doctor?.clinic?.nameClinic || 'Phòng khám',
+              date: booking.date,
+              time:
+                booking.timeType === 'morning'
+                  ? '08:00 - 12:00'
+                  : '13:00 - 17:00',
+              status: getStatusFromCode(booking.status),
+              originalBooking: booking,
+            };
+          },
+        );
+
         setBookings(formattedBookings);
       } else {
-        // Fallback to mock data if API response is invalid
-        setBookings(getMockBookings());
+        console.log('Invalid API response format:', response);
+        setBookings([]);
       }
     } catch (error) {
       console.log('Error fetching bookings:', error);
-      // Fallback to mock data
-      setBookings(getMockBookings());
+      Alert.alert(
+        'Lỗi',
+        'Không thể tải danh sách lịch khám. Vui lòng thử lại sau.',
+      );
+      setBookings([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
-  
-  const getMockBookings = (): Booking[] => {
-    return [
-      {
-        id: 'BK12345',
-        doctorName: 'BS. Trần Văn B',
-        specialty: 'Tim mạch',
-        hospitalName: 'Bệnh viện Chợ Rẫy',
-        date: '2025-06-15',
-        time: '09:00',
-        status: 'confirmed',
-      },
-      {
-        id: 'BK12346',
-        doctorName: 'BS. Lê Thị C',
-        specialty: 'Da liễu',
-        hospitalName: 'Bệnh viện Bình Dân',
-        date: '2025-06-20',
-        time: '14:30',
-        status: 'pending',
-      },
-      {
-        id: 'BK12347',
-        doctorName: 'PGS.TS Nguyễn Văn D',
-        specialty: 'Thần kinh',
-        hospitalName: 'BV Đại học Y Dược',
-        date: '2025-05-10',
-        time: '10:00',
-        status: 'completed',
-      },
-    ];
-  };
-  
-  const getStatusFromCode = (statusCode: number): Booking['status'] => {
+
+  const getStatusFromCode = (statusCode: number): BookingDisplay['status'] => {
     switch (statusCode) {
       case 0:
         return 'pending';
@@ -121,13 +108,13 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({ navigation }) => {
         return 'pending';
     }
   };
-  
+
   const handleCancelBooking = (bookingId: string) => {
     Alert.alert(
       'Xác nhận hủy lịch',
       'Bạn có chắc chắn muốn hủy lịch khám này không?',
       [
-        { text: 'Không', style: 'cancel' },
+        {text: 'Không', style: 'cancel'},
         {
           text: 'Có, hủy lịch',
           style: 'destructive',
@@ -139,51 +126,80 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({ navigation }) => {
               fetchBookings();
             } catch (error) {
               console.log('Error canceling booking:', error);
-              Alert.alert('Lỗi', 'Không thể hủy lịch khám. Vui lòng thử lại sau.');
+              Alert.alert(
+                'Lỗi',
+                'Không thể hủy lịch khám. Vui lòng thử lại sau.',
+              );
               setLoading(false);
             }
           },
         },
-      ]
+      ],
     );
   };
-  
-  const handleRescheduleBooking = (bookingId: string) => {
-    navigation.navigate('BookingDetail', { bookingId, mode: 'reschedule' });
+
+  const handleRescheduleBooking = async (bookingId: string, formattedDate: string, selectedSlot: {timeType: string}) => {
+    if (bookingId) {
+      try {
+        await bookingService.rescheduleBooking(bookingId, formattedDate, selectedSlot.timeType);
+        Alert.alert('Thành công', 'Lịch khám của bạn đã được đổi.', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      } catch (error) {
+        Alert.alert('Lỗi', 'Không thể đổi lịch. Vui lòng thử lại.');
+      }
+    }
   };
-  
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchBookings();
   };
-  
+
   const getUpcomingBookings = () => {
     const today = new Date();
-    return bookings.filter((booking) => {
+    today.setHours(0, 0, 0, 0);
+
+    return bookings.filter(booking => {
       const bookingDate = new Date(booking.date);
-      return bookingDate >= today && (booking.status === 'confirmed' || booking.status === 'pending');
+      bookingDate.setHours(0, 0, 0, 0);
+      return (
+        bookingDate >= today &&
+        (booking.status === 'confirmed' || booking.status === 'pending')
+      );
     });
   };
-  
+
   const getPastBookings = () => {
     const today = new Date();
-    return bookings.filter((booking) => {
+    today.setHours(0, 0, 0, 0);
+
+    return bookings.filter(booking => {
       const bookingDate = new Date(booking.date);
-      return bookingDate < today || booking.status === 'completed' || booking.status === 'canceled';
+      bookingDate.setHours(0, 0, 0, 0);
+      return (
+        bookingDate < today ||
+        booking.status === 'completed' ||
+        booking.status === 'canceled'
+      );
     });
   };
-  
+
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('vi-VN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch (error) {
+      return dateString;
+    }
   };
-  
-  const getStatusColor = (status: Booking['status']): string => {
+
+  const getStatusColor = (status: BookingDisplay['status']): string => {
     switch (status) {
       case 'confirmed':
         return '#4CD964';
@@ -197,8 +213,8 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({ navigation }) => {
         return '#999';
     }
   };
-  
-  const getStatusText = (status: Booking['status']): string => {
+
+  const getStatusText = (status: BookingDisplay['status']): string => {
     switch (status) {
       case 'confirmed':
         return 'Đã xác nhận';
@@ -212,28 +228,43 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({ navigation }) => {
         return '';
     }
   };
-  
+
   const handleBookingPress = (bookingId: string) => {
-    navigation.navigate('BookingDetail', { bookingId });
+    navigation.navigate('BookingDetail', {bookingId});
   };
-  
-  const renderBookingItem = ({ item }: { item: Booking }) => (
-    <TouchableOpacity 
+
+  const handleReviewPress = (bookingId: string) => {
+    navigation.navigate('ReviewBooking', {bookingId});
+  };
+
+  const handleBookAgainPress = (booking: BookingDisplay) => {
+    navigation.navigate('BookingConfirm', {
+      doctorId: booking.originalBooking.doctorId,
+      doctor: booking.originalBooking.doctor,
+    });
+  };
+
+  const renderBookingItem = ({item}: {item: BookingDisplay}) => (
+    <TouchableOpacity
       style={styles.bookingCard}
-      onPress={() => handleBookingPress(item.id)}
-    >
+      onPress={() => handleBookingPress(item.id)}>
       <View style={styles.bookingHeader}>
-        <View>
+        <View style={styles.doctorInfo}>
           <Text style={styles.doctorName}>{item.doctorName}</Text>
           <Text style={styles.doctorSpecialty}>{item.specialty}</Text>
         </View>
-        <View style={[styles.statusTag, { backgroundColor: `${getStatusColor(item.status)}20` }]}>
-          <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+        <View
+          style={[
+            styles.statusTag,
+            {backgroundColor: `${getStatusColor(item.status)}20`},
+          ]}>
+          <Text
+            style={[styles.statusText, {color: getStatusColor(item.status)}]}>
             {getStatusText(item.status)}
           </Text>
         </View>
       </View>
-      
+
       <View style={styles.bookingInfo}>
         <View style={styles.infoItem}>
           <Text style={styles.infoIcon}>📅</Text>
@@ -245,76 +276,70 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({ navigation }) => {
         </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoIcon}>🏥</Text>
-          <Text style={styles.infoText}>{item.hospitalName}</Text>
+          <Text style={styles.infoText}>{item.nameClinic}</Text>
         </View>
-      </View>
-      
-      <View style={styles.actionButtons}>
-        {(item.status === 'confirmed' || item.status === 'pending') && (
-          <>
-            <TouchableOpacity 
-              style={styles.rescheduleButton}
-              onPress={() => handleRescheduleBooking(item.id)}
-            >
-              <Text style={styles.rescheduleText}>Đổi lịch</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.cancelButton}
-              onPress={() => handleCancelBooking(item.id)}
-            >
-              <Text style={styles.cancelText}>Hủy lịch</Text>
-            </TouchableOpacity>
-          </>
-        )}
-        {item.status === 'completed' && (
-          <TouchableOpacity style={styles.reviewButton}>
-            <Text style={styles.reviewText}>Đánh giá</Text>
-          </TouchableOpacity>
-        )}
-        {item.status === 'canceled' && (
-          <TouchableOpacity style={styles.bookAgainButton}>
-            <Text style={styles.bookAgainText}>Đặt lại</Text>
-          </TouchableOpacity>
+        {item.originalBooking.symptomDescription && (
+          <View style={styles.infoItem}>
+            <Text style={styles.infoIcon}>📝</Text>
+            <Text style={styles.infoText} numberOfLines={2}>
+              {item.originalBooking.symptomDescription}
+            </Text>
+          </View>
         )}
       </View>
+
       
-      <Text style={styles.bookingId}>Mã đặt lịch: {item.id}</Text>
+
+      <Text style={styles.bookingId}>Mã đặt lịch: #{item.id}</Text>
     </TouchableOpacity>
   );
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#f8f8f8" barStyle="dark-content" />
-      
+
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Lịch khám của tôi</Text>
         <View style={styles.placeholder} />
       </View>
-      
-      {/* Tab Navigation */}
+
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'upcoming' && styles.activeTabButton]}
-          onPress={() => setActiveTab('upcoming')}
-        >
-          <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>
-            Sắp tới
+          style={[
+            styles.tabButton,
+            activeTab === 'upcoming' && styles.activeTabButton,
+          ]}
+          onPress={() => setActiveTab('upcoming')}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'upcoming' && styles.activeTabText,
+            ]}>
+            Sắp tới ({getUpcomingBookings().length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'past' && styles.activeTabButton]}
-          onPress={() => setActiveTab('past')}
-        >
-          <Text style={[styles.tabText, activeTab === 'past' && styles.activeTabText]}>
-            Đã qua
+          style={[
+            styles.tabButton,
+            activeTab === 'past' && styles.activeTabButton,
+          ]}
+          onPress={() => setActiveTab('past')}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'past' && styles.activeTabText,
+            ]}>
+            Đã hủy ({getPastBookings().length})
           </Text>
         </TouchableOpacity>
       </View>
-      
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
@@ -322,9 +347,11 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({ navigation }) => {
         </View>
       ) : (
         <FlatList
-          data={activeTab === 'upcoming' ? getUpcomingBookings() : getPastBookings()}
+          data={
+            activeTab === 'upcoming' ? getUpcomingBookings() : getPastBookings()
+          }
+          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
           renderItem={renderBookingItem}
-          keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -338,8 +365,7 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({ navigation }) => {
               {activeTab === 'upcoming' && (
                 <TouchableOpacity
                   style={styles.newBookingButton}
-                  onPress={() => navigation.navigate('DoctorList')}
-                >
+                  onPress={() => navigation.navigate('DoctorList')}>
                   <Text style={styles.newBookingText}>Đặt lịch khám</Text>
                 </TouchableOpacity>
               )}
@@ -349,6 +375,8 @@ const MyBookingsScreen: React.FC<MyBookingsScreenProps> = ({ navigation }) => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
+              colors={['#007AFF']}
+              tintColor="#007AFF"
             />
           }
         />
@@ -361,6 +389,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',
@@ -447,6 +476,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 12,
   },
+  doctorInfo: {
+    flex: 1,
+  },
   doctorName: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -461,6 +493,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 16,
+    marginLeft: 8,
   },
   statusText: {
     fontSize: 12,
@@ -483,10 +516,12 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     color: '#333',
+    flex: 1,
   },
   actionButtons: {
     flexDirection: 'row',
     marginBottom: 12,
+    flexWrap: 'wrap',
   },
   rescheduleButton: {
     backgroundColor: '#E3F2FD',
@@ -494,6 +529,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     marginRight: 10,
+    marginBottom: 8,
   },
   rescheduleText: {
     fontSize: 14,
@@ -505,6 +541,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
+    marginBottom: 8,
   },
   cancelText: {
     fontSize: 14,
@@ -516,6 +553,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
+    marginBottom: 8,
   },
   reviewText: {
     fontSize: 14,
@@ -527,6 +565,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
+    marginBottom: 8,
   },
   bookAgainText: {
     fontSize: 14,
@@ -537,6 +576,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     textAlign: 'right',
+    fontStyle: 'italic',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -566,4 +606,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MyBookingsScreen; 
+export default MyBookingsScreen;

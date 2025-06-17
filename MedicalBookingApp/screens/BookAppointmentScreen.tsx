@@ -15,7 +15,6 @@ import { useAuth } from '../context/AuthContext';
 import * as bookingService from '../services/bookingService';
 import * as doctorService from '../services/doctorService';
 
-// Định nghĩa kiểu TimeSlot phù hợp với API và UI
 interface TimeSlot {
   id: string;
   time: string;
@@ -29,12 +28,13 @@ interface BookAppointmentScreenProps {
     params: {
       doctorId: string;
       doctorName: string;
+      bookingId?: string;
     };
   };
 }
 
 const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigation, route }) => {
-  const { doctorId, doctorName } = route.params;
+  const { doctorId, doctorName, bookingId } = route.params;
   const { user } = useAuth();
   
   const [loading, setLoading] = useState<boolean>(false);
@@ -44,9 +44,7 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
   const [availableDates, setAvailableDates] = useState<Date[]>([]);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   
-  // Initialize available dates only once
   useEffect(() => {
-    // Generate available dates for the next 7 days
     const dates = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() + i);
@@ -55,23 +53,18 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
     setAvailableDates(dates);
   }, []);
   
-  // Memoize fetchTimeSlots function to avoid recreation on every render
   const fetchTimeSlots = useCallback(async () => {
     if (!selectedDate) return;
     
     setLoading(true);
     
     try {
-      // Format date to YYYY-MM-DD
       const formattedDate = selectedDate.toISOString().split('T')[0];
-      
-      // Fetch doctor's schedule for the selected date
       const schedule = await doctorService.getDoctorSchedule(doctorId, formattedDate);
       
       if (schedule && schedule.timeSlots) {
         setTimeSlots(schedule.timeSlots);
       } else {
-        // Fallback to mock data if no schedule is available
         const slots: TimeSlot[] = [
           { id: '1', time: '09:00', timeType: 'morning', available: true },
           { id: '2', time: '09:30', timeType: 'morning', available: true },
@@ -91,9 +84,7 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
       }
     } catch (error) {
       console.log('Error fetching time slots:', error);
-      Alert.alert('Lỗi', 'Không thể tải lịch khám. Vui lòng thử lại sau.');
-      
-      // Fallback to mock data
+     
       const slots: TimeSlot[] = [
         { id: '1', time: '09:00', timeType: 'morning', available: true },
         { id: '2', time: '09:30', timeType: 'morning', available: true },
@@ -175,33 +166,32 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
     setLoading(true);
     
     try {
-      // Format date to YYYY-MM-DD
       const formattedDate = selectedDate.toISOString().split('T')[0];
       
-      // Get selected time slot details
       const selectedSlot = timeSlots.find(slot => slot.id === selectedTimeSlot);
       
       if (!selectedSlot) {
         throw new Error('Không tìm thấy khung giờ đã chọn');
       }
       
-      // Create booking data
-      const bookingData = {
-        doctorId: doctorId,
-        patientId: user?.userId,
-        date: formattedDate,
-        timeType: selectedSlot.timeType as 'morning' | 'afternoon',
-        symptomDescription: symptomDescription,
-        status: 0, // Pending
-      };
-      
-      // Send booking request to API
-      const response = await bookingService.createBooking(bookingData);
-      
-      Alert.alert(
-        'Đặt lịch thành công',
-        'Lịch khám của bạn đã được đặt. Bạn sẽ nhận được thông báo xác nhận qua email và điện thoại.',
-        [
+      if (bookingId) {
+        await bookingService.rescheduleBooking(bookingId, formattedDate, selectedSlot.timeType, symptomDescription);
+        Alert.alert('Thành công', 'Lịch khám của bạn đã được đổi.', [
+          {
+            text: 'OK',
+            onPress: () => navigation.goBack(),
+          },
+        ]);
+      } else {
+        await bookingService.createBooking({
+          doctorId: doctorId,
+          patientId: user?.userId,
+          date: formattedDate,
+          timeType: selectedSlot.timeType as 'morning' | 'afternoon',
+          symptomDescription: symptomDescription,
+          status: 0, 
+        });
+        Alert.alert('Đặt lịch thành công', 'Lịch khám của bạn đã được đặt. Bạn sẽ nhận được thông báo xác nhận qua email và điện thoại.', [
           {
             text: 'OK',
             onPress: () => navigation.navigate('BookingComplete', {
@@ -210,11 +200,11 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
               time: selectedSlot.time,
             }),
           },
-        ]
-      );
+        ]);
+      }
     } catch (error) {
       console.log('Error booking appointment:', error);
-      Alert.alert('Lỗi', 'Không thể đặt lịch khám. Vui lòng thử lại sau.');
+      Alert.alert('Lỗi', 'Không thể đặt/đổi lịch khám. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }
@@ -286,7 +276,6 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
           </ScrollView>
         </View>
         
-        {/* Time Slot Selection */}
         {selectedDate && (
           <View style={styles.timeSelectionContainer}>
             <Text style={styles.sectionTitle}>Chọn giờ khám</Text>
@@ -323,7 +312,6 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
           </View>
         )}
         
-        {/* Symptom Description */}
         <View style={styles.symptomContainer}>
           <Text style={styles.sectionTitle}>Mô tả triệu chứng</Text>
           <TextInput
@@ -337,7 +325,6 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
           />
         </View>
         
-        {/* Booking Policy */}
         <View style={styles.policyContainer}>
           <Text style={styles.policyTitle}>Lưu ý khi đặt lịch</Text>
           <View style={styles.policyItem}>
@@ -354,11 +341,9 @@ const BookAppointmentScreen: React.FC<BookAppointmentScreenProps> = ({ navigatio
           </View>
         </View>
         
-        {/* Bottom padding for button */}
         <View style={{ height: 100 }} />
       </ScrollView>
       
-      {/* Bottom Action Bar */}
       <View style={styles.bottomBar}>
         <TouchableOpacity 
           style={[
@@ -383,6 +368,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',

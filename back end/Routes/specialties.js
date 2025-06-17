@@ -3,19 +3,19 @@ const router = express.Router();
 const specialtyController = require('../Controller/specialty');
 const authMiddleware = require('../Middleware/authMiddleware');
 
-// GET /api/specialties - Get all specialties (public)
+// G Get all specialties 
 router.get('/', specialtyController.findAll);
 
-// GET /api/specialties/:id - Get specialty by ID (public)
+//  Get specialty by ID 
 router.get('/:id', specialtyController.findOne);
 
-// POST /api/specialties - Create a new specialty (admin only)
+// Create a new specialty 
 router.post('/', authMiddleware.authenticateToken, authMiddleware.isAdmin, specialtyController.create);
 
-// PUT /api/specialties/:id - Update a specialty (admin only)
+// Update a specialty 
 router.put('/:id', authMiddleware.authenticateToken, authMiddleware.isAdmin, specialtyController.update);
 
-// DELETE /api/specialties/:id - Delete a specialty (admin only)
+// Delete a specialty 
 router.delete('/:id', authMiddleware.authenticateToken, authMiddleware.isAdmin, specialtyController.delete);
 
 module.exports = router; 

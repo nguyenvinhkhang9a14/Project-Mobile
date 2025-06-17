@@ -7,8 +7,11 @@ import api from './api';
 // Lấy tất cả lịch đặt khám của người dùng
 export const getUserBookings = async (): Promise<Booking[]> => {
   try {
-    const response = await api.get(API_ENDPOINTS.BOOKINGS);
+    // Sử dụng endpoint my-bookings thay vì bookings chung
+    const response = await api.get('/bookings/my-bookings');
+       console.log(response.data);
     return response.data;
+
   } catch (error) {
     console.log('Error fetching user bookings:', error);
     throw error;
@@ -21,7 +24,7 @@ export const getMyBookings = getUserBookings;
 // Lấy thông tin chi tiết lịch đặt khám
 export const getBookingDetail = async (bookingId: string): Promise<Booking> => {
   try {
-    const response = await api.get(API_ENDPOINTS.BOOKING_BY_ID(bookingId));
+    const response = await api.get(`/bookings/${bookingId}`);
     return response.data;
   } catch (error) {
     console.log('Error fetching booking detail:', error);
@@ -32,8 +35,15 @@ export const getBookingDetail = async (bookingId: string): Promise<Booking> => {
 // Lấy các lịch đặt khám sắp tới
 export const getUpcomingAppointments = async (): Promise<Booking[]> => {
   try {
-    const response = await api.get(`${API_ENDPOINTS.BOOKINGS}?status=upcoming`);
-    return response.data;
+    const allBookings = await getUserBookings();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return allBookings.filter((booking) => {
+      const bookingDate = new Date(booking.date);
+      bookingDate.setHours(0, 0, 0, 0);
+      return bookingDate >= today && (booking.status === 1 || booking.status === 0); // confirmed or pending
+    });
   } catch (error) {
     console.log('Error fetching upcoming appointments:', error);
     throw error;
@@ -43,8 +53,15 @@ export const getUpcomingAppointments = async (): Promise<Booking[]> => {
 // Lấy lịch sử đặt khám
 export const getBookingHistory = async (): Promise<Booking[]> => {
   try {
-    const response = await api.get(`${API_ENDPOINTS.BOOKINGS}?status=completed`);
-    return response.data;
+    const allBookings = await getUserBookings();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return allBookings.filter((booking) => {
+      const bookingDate = new Date(booking.date);
+      bookingDate.setHours(0, 0, 0, 0);
+      return bookingDate < today || booking.status === 2 || booking.status === 3; // completed or canceled
+    });
   } catch (error) {
     console.log('Error fetching booking history:', error);
     throw error;
@@ -54,7 +71,7 @@ export const getBookingHistory = async (): Promise<Booking[]> => {
 // Đặt lịch khám mới
 export const createBooking = async (bookingData: Partial<Booking>): Promise<Booking> => {
   try {
-    const response = await api.post(API_ENDPOINTS.BOOKINGS, bookingData);
+    const response = await api.post('/bookings', bookingData);
     return response.data;
   } catch (error) {
     console.log('Error creating booking:', error);
@@ -65,7 +82,7 @@ export const createBooking = async (bookingData: Partial<Booking>): Promise<Book
 // Cập nhật thông tin đặt lịch
 export const updateBooking = async (bookingId: string, data: Partial<Booking>): Promise<Booking> => {
   try {
-    const response = await api.put(API_ENDPOINTS.BOOKING_BY_ID(bookingId), data);
+    const response = await api.put(`/bookings/${bookingId}`, data);
     return response.data;
   } catch (error) {
     console.log('Error updating booking:', error);
@@ -74,10 +91,9 @@ export const updateBooking = async (bookingId: string, data: Partial<Booking>): 
 };
 
 // Lấy danh sách lịch hẹn của bác sĩ
-export const getDoctorBookings = async (doctorId: string, date?: string): Promise<Booking[]> => {
+export const getDoctorBookings = async (doctorId?: string, date?: string): Promise<Booking[]> => {
   try {
-    const params = date ? { date } : {};
-    const response = await api.get(`/doctors/${doctorId}/bookings`, { params });
+    const response = await api.get('/bookings/doctor-bookings');
     return response.data;
   } catch (error) {
     console.log('Error fetching doctor bookings:', error);
@@ -88,7 +104,8 @@ export const getDoctorBookings = async (doctorId: string, date?: string): Promis
 // Cập nhật trạng thái lịch hẹn
 export const updateBookingStatus = async (bookingId: string, status: number): Promise<Booking> => {
   try {
-    return await updateBooking(bookingId, { status });
+    const response = await api.put(`/bookings/${bookingId}/status`, { status });
+    return response.data.booking;
   } catch (error) {
     console.log('Error updating booking status:', error);
     throw error;
@@ -98,7 +115,7 @@ export const updateBookingStatus = async (bookingId: string, status: number): Pr
 // Hủy lịch khám
 export const cancelBooking = async (bookingId: string): Promise<any> => {
   try {
-    const response = await api.post(API_ENDPOINTS.CANCEL_BOOKING(bookingId), {});
+    const response = await api.put(`/bookings/${bookingId}/status`, { status: 'canceled' });
     return response.data;
   } catch (error) {
     console.log('Error canceling booking:', error);
@@ -107,15 +124,28 @@ export const cancelBooking = async (bookingId: string): Promise<any> => {
 };
 
 // Đổi lịch khám
-export const rescheduleBooking = async (bookingId: string, newDate: string, newTimeType: string): Promise<any> => {
+export const rescheduleBooking = async (bookingId: string, newDate: string, newTimeType: string, symptomDescription?: string): Promise<any> => {
   try {
-    const response = await api.post(API_ENDPOINTS.RESCHEDULE_BOOKING(bookingId), {
-      date: newDate,
-      timeType: newTimeType,
-    });
+    const body: any = { date: newDate, timeType: newTimeType };
+    if (typeof symptomDescription !== 'undefined') body.symptomDescription = symptomDescription;
+    const response = await api.put(`/bookings/${bookingId}/reschedule`, body);
     return response.data;
   } catch (error) {
     console.log('Error rescheduling booking:', error);
     throw error;
   }
-}; 
+};
+
+// Thêm đánh giá cho lịch khám đã hoàn thành
+export const addBookingReview = async (bookingId: string, rating: number, comment?: string): Promise<any> => {
+  try {
+    const response = await api.post(`/bookings/${bookingId}/review`, {
+      rating,
+      comment,
+    });
+    return response.data;
+  } catch (error) {
+    console.log('Error adding booking review:', error);
+    throw error;
+  }
+};

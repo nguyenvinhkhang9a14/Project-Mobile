@@ -4,7 +4,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
-// Import screens
 import HomeScreen from '../screens/HomePage';
 import DoctorListScreen from '../screens/DoctorListScreen';
 import DoctorDetailScreen from '../screens/DoctorDetailScreen';
@@ -13,13 +12,10 @@ import BookingCompleteScreen from '../screens/BookingCompleteScreen';
 import MyBookingsScreen from '../screens/MyBookingsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SpecialtyListScreen from '../screens/SpecialtyListScreen';
-import DoctorScheduleScreen from '../screens/DoctorScheduleScreen';
 import BookingDetailScreen from '../screens/BookingDetailScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import EditMedicalInfoScreen from '../screens/EditMedicalInfoScreen';
-import SettingsScreen from '../screens/SettingsScreen';
 
-// Types
 export type MainStackParamList = {
   MainTabs: undefined;
   DoctorList: undefined;
@@ -52,12 +48,11 @@ export type DoctorTabsParamList = {
   Profile: undefined;
 };
 
-// Create navigators
+
 const Stack = createNativeStackNavigator<MainStackParamList>();
 const PatientTab = createBottomTabNavigator<PatientTabsParamList>();
 const DoctorTab = createBottomTabNavigator<DoctorTabsParamList>();
 
-// Tab icon component
 const TabIcon = ({ name, focused }: { name: string; focused: boolean }) => {
   const getIcon = () => {
     switch (name) {
@@ -176,14 +171,6 @@ const DoctorTabs = () => {
         }}
       />
       <DoctorTab.Screen
-        name="Schedule"
-        component={DoctorScheduleScreen}
-        options={{
-          tabBarLabel: 'Lịch khám',
-          tabBarIcon: ({ focused }) => <TabIcon name="Schedule" focused={focused} />,
-        }}
-      />
-      <DoctorTab.Screen
         name="Patients"
         component={MyBookingsScreen}
         options={{
@@ -237,7 +224,6 @@ const MainStack = () => {
       <Stack.Screen name="DoctorsBySpecialty" component={SpecialtyListScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="EditMedicalInfo" component={EditMedicalInfoScreen} />
-      <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );
 };

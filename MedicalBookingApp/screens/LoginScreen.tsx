@@ -22,17 +22,19 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState<TabType>('login');
   const [loading, setLoading] = useState(false);
   
-  // Login form state
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   
-  // Register form state
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [role, setRole] = useState<'patient' | 'doctor'>('patient');
+  
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
   
   const handleLogin = async () => {
     if (!loginEmail || !loginPassword) {
@@ -43,7 +45,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     try {
       setLoading(true);
       await login(loginEmail, loginPassword);
-      // Navigation will be handled by the AuthContext
     } catch (error) {
       Alert.alert('Login Failed', typeof error === 'string' ? error : 'Please check your credentials and try again');
     } finally {
@@ -56,7 +57,10 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-    
+    if (!isValidEmail(registerEmail)) {
+      Alert.alert('Error', 'Email không hợp lệ');
+      return;
+    }
     if (registerPassword !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
       return;
@@ -103,7 +107,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       />
       <TouchableOpacity 
         style={styles.forgotPasswordButton}
-        onPress={() => navigation.navigate('ForgotPassword')}
+        onPress={() => Alert.alert('Lỗi', 'Chức năng đang phát triển')}
       >
         <Text style={styles.forgotPasswordText}>Quên mật khẩu?</Text>
       </TouchableOpacity>
@@ -183,15 +187,13 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[
-              styles.roleOption,
-              role === 'doctor' && styles.roleOptionSelected,
-            ]}
-            onPress={() => setRole('doctor')}
+            style={styles.roleOption}
+            disabled={true}
           >
             <Text style={[
               styles.roleOptionText,
               role === 'doctor' && styles.roleOptionTextSelected,
+              { color: '#ccc' }
             ]}>
               Bác sĩ
             </Text>

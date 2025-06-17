@@ -24,7 +24,7 @@ export const API_ENDPOINTS = {
   
   // Doctors
   DOCTORS: '/doctors',
-  DOCTOR_BY_ID: (id: string) => `/doctors/${id}`,
+  DOCTOR_BY_ID: (doctorId: string) => `/doctors/${doctorId}`,
   DOCTORS_BY_SPECIALTY: (specialtyId: string) => `/doctors/specialty/${specialtyId}`,
   DOCTORS_BY_CLINIC: (clinicId: string) => `/doctors/clinic/${clinicId}`,
   DOCTOR_SCHEDULE: (doctorId: string) => `/doctors/${doctorId}/schedule`,

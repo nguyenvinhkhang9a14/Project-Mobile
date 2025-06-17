@@ -55,49 +55,22 @@ const BookingDetailScreen: React.FC<BookingDetailScreenProps> = ({ navigation, r
       const response = await bookingService.getBookingDetail(bookingId);
       
       if (response) {
-        // Transform API response to match our component props
+    
         setBooking({
-          id: response.id.toString(),
-          doctorName: `${response.doctor.title || 'BS.'} ${response.doctor.firstname} ${response.doctor.lastname}`,
-          doctorId: response.doctorId.toString(),
-          specialty: response.doctor.specialty?.nameSpecialty || 'Chuyên khoa',
-          hospitalName: response.doctor.clinic?.nameClinic || 'Bệnh viện',
+          id: (response.bookingId ?? '').toString(),
+          doctorName: `${response.doctor?.title || 'BS.'} ${response.doctor?.firstname || ''} ${response.doctor?.lastname || ''}`,
+          doctorId: (response.doctorId ?? response.doctor?.doctorId ?? '').toString(),
+          specialty: response.doctor?.specialty?.nameSpecialty || 'Chuyên khoa',
+          hospitalName: response.doctor?.clinic?.nameClinic || 'Bệnh viện',
           date: response.date,
-          time: response.timeType === 'morning' ? '09:00' : '14:30',
+          time: response.timeType === 'morning' ? '08:00 - 12:00' : '13:00 - 17:00',
           status: getStatusText(response.status),
           description: response.symptomDescription || 'Không có mô tả',
-          doctorImage: response.doctor.image || 'https://via.placeholder.com/150',
-        });
-      } else {
-        // Fallback to mock data
-        setBooking({
-          id: bookingId,
-          doctorName: 'BS. Trần Văn B',
-          doctorId: '1',
-          specialty: 'Tim mạch',
-          hospitalName: 'Bệnh viện Chợ Rẫy',
-          date: '2023-06-15',
-          time: '09:00',
-          status: 'Đã xác nhận',
-          description: 'Đau ngực, khó thở khi gắng sức',
-          doctorImage: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=60&h=60&fit=crop&crop=face',
+          doctorImage: response.doctor?.image || 'https://via.placeholder.com/150',
         });
       }
     } catch (error) {
       console.log('Error fetching booking details:', error);
-      // Fallback to mock data
-      setBooking({
-        id: bookingId,
-        doctorName: 'BS. Trần Văn B',
-        doctorId: '1',
-        specialty: 'Tim mạch',
-        hospitalName: 'Bệnh viện Chợ Rẫy',
-        date: '2023-06-15',
-        time: '09:00',
-        status: 'Đã xác nhận',
-        description: 'Đau ngực, khó thở khi gắng sức',
-        doctorImage: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=60&h=60&fit=crop&crop=face',
-      });
     } finally {
       setLoading(false);
     }
@@ -133,7 +106,7 @@ const BookingDetailScreen: React.FC<BookingDetailScreenProps> = ({ navigation, r
       navigation.navigate('BookAppointment', {
         doctorId: booking.doctorId,
         doctorName: booking.doctorName,
-        bookingId: booking.id, // Pass bookingId for rescheduling
+        bookingId: booking.id,
       });
     }
   };
@@ -282,23 +255,8 @@ const BookingDetailScreen: React.FC<BookingDetailScreenProps> = ({ navigation, r
           </View>
         ) : null}
         
-        {/* If mode is reschedule, automatically trigger reschedule */}
-        {mode === 'reschedule' && booking.status !== 'Đã hủy' && booking.status !== 'Đã khám xong' && (
-          <View style={styles.rescheduleBanner}>
-            <Text style={styles.rescheduleTitle}>Đổi lịch khám</Text>
-            <Text style={styles.rescheduleMessage}>
-              Vui lòng chọn ngày và giờ mới cho lịch khám của bạn.
-            </Text>
-            <TouchableOpacity 
-              style={styles.confirmRescheduleButton}
-              onPress={handleReschedule}
-            >
-              <Text style={styles.confirmRescheduleText}>Tiếp tục đổi lịch</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+  
         
-        {/* Bottom padding */}
         <View style={{ height: 80 }} />
       </ScrollView>
     </SafeAreaView>
@@ -309,6 +267,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',

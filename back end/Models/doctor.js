@@ -3,54 +3,57 @@ module.exports = (sequelize, DataTypes) => {
     doctorId: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      autoIncrement: true
+      autoIncrement: true,
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     firstname: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     lastname: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     image: {
-      type: DataTypes.BLOB
+      type: DataTypes.STRING,
     },
     description: {
-      type: DataTypes.TEXT
+      type: DataTypes.TEXT,
     },
     bioHTML: {
-      type: DataTypes.TEXT('long')
+      type: DataTypes.TEXT("long"),
     },
     specialtyId: {
-      type: DataTypes.INTEGER
+      type: DataTypes.INTEGER,
     },
     clinicId: {
-      type: DataTypes.INTEGER
-    }
+      type: DataTypes.INTEGER,
+    },
+    price: {
+      type: DataTypes.INTEGER,
+    },
   });
 
   Doctor.associate = (models) => {
     Doctor.hasMany(models.booking, {
-      foreignKey: 'doctorId',
-      as: 'bookings',
+      foreignKey: "doctorId",
+      as: "bookings",
     });
-    
+
     Doctor.belongsTo(models.specialty, {
-      foreignKey: 'specialtyId',
-      as: 'specialty'
+      foreignKey: "specialtyId",
+      as: "specialty",
     });
-    
+
     Doctor.belongsTo(models.clinic, {
-      foreignKey: 'clinicId',
-      as: 'clinic'
+      foreignKey: "clinicId",
+      as: "clinic",
     });
-    
+
     Doctor.belongsTo(models.user, {
-      foreignKey: 'userId',
-      as: 'user'
+      foreignKey: "userId",
+      as: "user",
     });
   };
 
